@@ -1,0 +1,22 @@
+{
+  "@@locale": "ar",
+  "appTitle": "لوحة التحكم",
+  "welcome": "مرحباً بك",
+  "home": "الرئيسية",
+  "today": "اليوم",
+  "contracts": "العقود",
+  "cases": "القضايا",
+  "sessions": "الجلسات",
+  "appointments": "المواعيد",
+  "clients": "العملاء",
+  "documents": "المستندات",
+  "tasks": "المهام",
+  "tools": "الأدوات",
+  "help": "المساعدة",
+  "settings": "الإعدادات",
+  "reports": "التقارير",
+  "invoices": "الفواتير",
+  "partners": "المتعاونين",
+  "users": "المستخدمين"
+}
+
