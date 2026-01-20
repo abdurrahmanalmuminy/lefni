@@ -1,0 +1,324 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             getUserData().role == 'admin';
+    }
+    
+    function getUserRole() {
+      return getUserData().role;
+    }
+    
+    function hasPermission(permission) {
+      return isAuthenticated() && 
+             permission in getUserData().permissions;
+    }
+    
+    // Check if user has permission for a specific resource (e.g., "case:abc123")
+    function hasResourcePermission(collection, resourceId) {
+      return isAuthenticated() && 
+             (collection + ':' + resourceId) in getUserData().permissions;
+    }
+    
+    // Check if user has permission to create resources in a collection (e.g., "create_cases")
+    function hasCreatePermission(collection) {
+      return isAuthenticated() && 
+             ('create_' + collection) in getUserData().permissions;
+    }
+    
+    // Check if user is a client
+    function isClient() {
+      return isAuthenticated() && getUserRole() == 'client';
+    }
+    
+    // Check if client can access a resource by clientId
+    function isClientOwner(clientId) {
+      return isClient() && (
+        clientId == request.auth.uid ||
+        (exists(/databases/$(database)/documents/clients/$(clientId)) &&
+         get(/databases/$(database)/documents/clients/$(clientId)).data.get('userId', '') == request.auth.uid)
+      );
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Allow users to create their own document with required fields
+      allow create: if isAuthenticated() && request.auth.uid == userId && 
+                       request.resource.data.email is string &&
+                       request.resource.data.role is string &&
+                       request.resource.data.profile is map &&
+                       request.resource.data.permissions is list &&
+                       request.resource.data.isActive is bool &&
+                       request.resource.data.createdAt is timestamp;
+      allow write: if isAdmin();
+      // Allow users to update their own profile and lastLogin
+      allow update: if request.auth.uid == userId && 
+                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profile', 'lastLogin']) ||
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastLogin']));
+    }
+    
+    // Clients collection
+    match /clients/{clientId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('client', clientId) ||
+        (isClient() && (
+          request.auth.uid == clientId ||
+          resource.data.userId == request.auth.uid
+        ))
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('client') ||
+        (isClient() && request.resource.data.userId == request.auth.uid)
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('client', clientId) ||
+        (isClient() && resource.data.userId == request.auth.uid)
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Cases collection
+    match /cases/{caseId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.clientId == request.auth.uid ||
+        isClientOwner(resource.data.clientId) ||
+        resource.data.leadLawyerId == request.auth.uid ||
+        request.auth.uid in resource.data.collaborators ||
+        hasResourcePermission('case', caseId)
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('case')
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.leadLawyerId == request.auth.uid ||
+        request.auth.uid in resource.data.collaborators ||
+        hasResourcePermission('case', caseId)
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Contracts collection
+    match /contracts/{contractId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.clientId == request.auth.uid ||
+        isClientOwner(resource.data.clientId) ||
+        hasResourcePermission('contract', contractId)
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('contract')
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('contract', contractId) ||
+        (resource.data.clientId == request.auth.uid || isClientOwner(resource.data.clientId)) && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['signatureStatus'])
+      );
+      allow delete: if isAdmin();
+      
+      // Audit log sub-collection
+      match /audit_log/{logId} {
+        allow read: if isAuthenticated() && (
+          isAdmin() ||
+          hasResourcePermission('contract', contractId)
+        );
+        allow create: if isAuthenticated();
+      }
+    }
+    
+    // Sessions collection
+    match /sessions/{sessionId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.lawyerId == request.auth.uid ||
+        resource.data.clientId == request.auth.uid ||
+        isClientOwner(resource.data.clientId) ||
+        hasResourcePermission('session', sessionId)
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('session')
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('session') ||
+        hasResourcePermission('session', sessionId)
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Tasks collection
+    match /tasks/{taskId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('task', taskId) ||
+        resource.data.assignedTo == request.auth.uid ||
+        resource.data.createdBy == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('task')
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('task', taskId) ||
+        resource.data.assignedTo == request.auth.uid
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Finances collection
+    match /finances/{financeId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        resource.data.clientId == request.auth.uid ||
+        isClientOwner(resource.data.clientId) ||
+        hasResourcePermission('finance', financeId) ||
+        hasPermission('view_finances')
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('finance')
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('finance') ||
+        hasResourcePermission('finance', financeId)
+      );
+      allow delete: if isAdmin();
+    }
+    
+    // Documents collection
+    match /documents/{documentId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('document', documentId) ||
+        resource.data.uploaderUid == request.auth.uid ||
+        ('clientId' in resource.data && (
+          resource.data.clientId == request.auth.uid ||
+          isClientOwner(resource.data.clientId)
+        ))
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('document') ||
+        request.resource.data.uploaderUid == request.auth.uid
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('document', documentId) ||
+        resource.data.uploaderUid == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('document', documentId) ||
+        resource.data.uploaderUid == request.auth.uid
+      );
+    }
+    
+    // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('expense', expenseId) ||
+        resource.data.createdBy == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('expense') ||
+        request.resource.data.createdBy == request.auth.uid
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('expense', expenseId) ||
+        resource.data.createdBy == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('expense', expenseId) ||
+        resource.data.createdBy == request.auth.uid
+      );
+    }
+    
+    // Appointments collection
+    match /appointments/{appointmentId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('appointment', appointmentId) ||
+        resource.data.clientId == request.auth.uid ||
+        isClientOwner(resource.data.clientId) ||
+        resource.data.createdBy == request.auth.uid
+      );
+      allow create: if isAuthenticated() && (
+        isAdmin() ||
+        hasCreatePermission('appointment') ||
+        request.resource.data.createdBy == request.auth.uid
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('appointment', appointmentId) ||
+        resource.data.createdBy == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && (
+        isAdmin() ||
+        hasResourcePermission('appointment', appointmentId) ||
+        resource.data.createdBy == request.auth.uid
+      );
+    }
+    
+    // Collection records collection
+    match /collection_records/{recordId} {
+      // Admins have full access to everything by default
+      allow read, write: if isAdmin();
+      
+      // Non-admin read access
+      allow read: if isAuthenticated() && (
+        hasResourcePermission('collection_record', recordId) ||
+        resource.data.recordedBy == request.auth.uid
+      );
+      
+      // Non-admin create access
+      allow create: if isAuthenticated() && (
+        hasCreatePermission('collection_record') ||
+        request.resource.data.recordedBy == request.auth.uid
+      );
+      
+      // Non-admin update access
+      allow update: if isAuthenticated() && (
+        hasResourcePermission('collection_record', recordId) ||
+        resource.data.recordedBy == request.auth.uid
+      );
+      
+      // Non-admin delete access
+      allow delete: if isAuthenticated() && hasResourcePermission('collection_record', recordId);
+    }
+    
+    // System stats collection
+    match /system_stats/{document=**} {
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        hasPermission('view_system_stats')
+      );
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}
+

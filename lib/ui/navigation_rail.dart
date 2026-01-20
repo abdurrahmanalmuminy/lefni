@@ -229,7 +229,10 @@ class _ResponsiveNavigationRailState extends State<ResponsiveNavigationRail> {
                   ), // Dark in light theme
           ),
           indicatorColor: selectedColor,
-          leading: Image.asset("assets/branding/lefni.png", height: 35),
+          leading: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 15),
+            child: Image.asset("assets/branding/lefni.png", height: 35, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : null),
+          ),
           trailing: Expanded(
             child: Align(
               alignment: Alignment.bottomCenter,

@@ -1,0 +1,1196 @@
+/**
+ * Cloud Functions for Legal Firm Management System
+ *
+ * Phase 1: Essential Functions
+ * - onUserCreate: User initialization
+ * - updateSystemStats: Dashboard statistics aggregation
+ * - updateClientStats: Client data integrity
+ */
+
+import {initializeApp} from "firebase-admin/app";
+import {getFirestore, FieldValue, Timestamp} from "firebase-admin/firestore";
+// import {getStorage} from "firebase-admin/storage"; // Not used yet
+import {onDocumentCreated, onDocumentUpdated, onDocumentDeleted} from "firebase-functions/v2/firestore";
+import {onSchedule} from "firebase-functions/v2/scheduler";
+import {onObjectFinalized} from "firebase-functions/v2/storage";
+import * as logger from "firebase-functions/logger";
+
+// Initialize Firebase Admin
+initializeApp();
+const db = getFirestore();
+
+// ============================================================================
+// Phase 1: Essential Functions
+// ============================================================================
+
+/**
+ * 1.1 onUserCreate - User Initialization
+ * Ensures user document is properly initialized when created
+ */
+export const onUserCreate = onDocumentCreated(
+  {
+    document: "users/{userId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const userData = event.data?.data();
+      if (!userData) {
+        logger.warn("onUserCreate: No user data found");
+        return;
+      }
+
+      const updates: Record<string, unknown> = {};
+
+      // Ensure required fields exist
+      if (!userData.permissions) {
+        updates.permissions = [];
+      }
+      if (userData.isActive === undefined) {
+        updates.isActive = true;
+      }
+      if (!userData.createdAt) {
+        updates.createdAt = FieldValue.serverTimestamp();
+      }
+      if (!userData.profile) {
+        updates.profile = {};
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updates).length > 0) {
+        await db.collection("users").doc(event.params.userId).update(updates);
+        logger.info(`onUserCreate: Initialized user ${event.params.userId}`);
+      }
+    } catch (error) {
+      logger.error("onUserCreate: Error initializing user", error);
+    }
+  }
+);
+
+/**
+ * 1.2 updateSystemStats - Dashboard Statistics Aggregation
+ * Aggregates system-wide statistics for dashboard overview
+ */
+export const updateSystemStats = onSchedule(
+  {
+    schedule: "every 1 hours",
+    timeZone: "UTC",
+    maxInstances: 1,
+  },
+  async (event) => {
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      logger.info("updateSystemStats: Starting aggregation");
+
+      // Aggregate clients
+      const clientsSnapshot = await db.collection("clients").get();
+      const clientsStats = {
+        total: clientsSnapshot.size,
+        active: clientsSnapshot.docs.filter((d) => {
+          const data = d.data();
+          return data.isActive !== false;
+        }).length,
+        individuals: clientsSnapshot.docs.filter((d) => d.data().type === "individual").length,
+        businesses: clientsSnapshot.docs.filter((d) => d.data().type === "business").length,
+      };
+
+      // Aggregate cases
+      const casesSnapshot = await db.collection("cases").get();
+      const casesStats = {
+        total: casesSnapshot.size,
+        active: casesSnapshot.docs.filter((d) => d.data().status === "active").length,
+        prospects: casesSnapshot.docs.filter((d) => d.data().status === "prospect").length,
+        closed: casesSnapshot.docs.filter((d) => d.data().status === "closed").length,
+      };
+
+      // Aggregate contracts
+      const contractsSnapshot = await db.collection("contracts").get();
+      const contractsStats = {
+        total: contractsSnapshot.size,
+        pending: contractsSnapshot.docs.filter((d) => d.data().status === "pending").length,
+        signed: contractsSnapshot.docs.filter((d) => d.data().status === "signed").length,
+        archived: contractsSnapshot.docs.filter((d) => d.data().status === "archived").length,
+      };
+
+      // Aggregate finances
+      const financesSnapshot = await db.collection("finances").get();
+      let totalInvoiced = 0;
+      let totalPaid = 0;
+      let totalPending = 0;
+      let monthlyRevenue = 0;
+
+      financesSnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === "invoice") {
+          totalInvoiced += data.total || 0;
+          if (data.status === "paid" && data.paidAt) {
+            const paidDate = (data.paidAt as Timestamp).toDate();
+            totalPaid += data.total || 0;
+            if (paidDate >= startOfMonth) {
+              monthlyRevenue += data.total || 0;
+            }
+          } else if (data.status === "unpaid" || data.status === "partial") {
+            totalPending += data.total || 0;
+          }
+        }
+      });
+
+      const financesStats = {
+        totalInvoiced,
+        totalPaid,
+        totalPending,
+        monthlyRevenue,
+      };
+
+      // Aggregate sessions
+      const sessionsSnapshot = await db.collection("sessions").get();
+      const nowTimestamp = Timestamp.fromDate(now);
+      const endOfWeekTimestamp = Timestamp.fromDate(endOfWeek);
+      const startOfDayTimestamp = Timestamp.fromDate(startOfDay);
+      const endOfDayTimestamp = Timestamp.fromDate(
+        new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1)
+      );
+
+      const sessionsStats = {
+        upcoming: sessionsSnapshot.docs.filter((d) => {
+          const dateTime = (d.data().dateTime as Timestamp).toDate();
+          return dateTime > now;
+        }).length,
+        today: sessionsSnapshot.docs.filter((d) => {
+          const dateTime = (d.data().dateTime as Timestamp);
+          return dateTime >= startOfDayTimestamp && dateTime <= endOfDayTimestamp;
+        }).length,
+        thisWeek: sessionsSnapshot.docs.filter((d) => {
+          const dateTime = (d.data().dateTime as Timestamp);
+          return dateTime > nowTimestamp && dateTime <= endOfWeekTimestamp;
+        }).length,
+      };
+
+      // Update system_stats document
+      await db.collection("system_stats").doc("dashboard_overview").set(
+        {
+          clients: clientsStats,
+          cases: casesStats,
+          contracts: contractsStats,
+          finances: financesStats,
+          sessions: sessionsStats,
+          lastUpdated: FieldValue.serverTimestamp(),
+        },
+        {merge: true}
+      );
+
+      logger.info("updateSystemStats: Completed successfully");
+    } catch (error) {
+      logger.error("updateSystemStats: Error aggregating stats", error);
+    }
+  }
+);
+
+/**
+ * 1.3 updateClientStats - Client Data Integrity
+ * Keeps client statistics accurate when related data changes
+ */
+
+// Update client stats when case is created
+export const onCaseCreated = onDocumentCreated(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const caseData = event.data?.data();
+      if (!caseData?.clientId) {
+        return;
+      }
+
+      // Count active cases for this client
+      const activeCasesSnapshot = await db
+        .collection("cases")
+        .where("clientId", "==", caseData.clientId)
+        .where("status", "==", "active")
+        .get();
+
+      await db.collection("clients").doc(caseData.clientId).update({
+        "stats.activeCases": activeCasesSnapshot.size,
+      });
+
+      logger.info(`onCaseCreated: Updated stats for client ${caseData.clientId}`);
+    } catch (error) {
+      logger.error("onCaseCreated: Error updating client stats", error);
+    }
+  }
+);
+
+// Update client stats when case is updated (status change)
+export const onCaseUpdated = onDocumentUpdated(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const caseData = event.data?.after.data();
+      if (!caseData?.clientId) {
+        return;
+      }
+
+      // Count active cases for this client
+      const activeCasesSnapshot = await db
+        .collection("cases")
+        .where("clientId", "==", caseData.clientId)
+        .where("status", "==", "active")
+        .get();
+
+      await db.collection("clients").doc(caseData.clientId).update({
+        "stats.activeCases": activeCasesSnapshot.size,
+      });
+
+      logger.info(`onCaseUpdated: Updated stats for client ${caseData.clientId}`);
+    } catch (error) {
+      logger.error("onCaseUpdated: Error updating client stats", error);
+    }
+  }
+);
+
+// Update client stats when case is deleted
+export const onCaseDeleted = onDocumentDeleted(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const caseData = event.data?.data();
+      if (!caseData?.clientId) {
+        return;
+      }
+
+      // Count active cases for this client
+      const activeCasesSnapshot = await db
+        .collection("cases")
+        .where("clientId", "==", caseData.clientId)
+        .where("status", "==", "active")
+        .get();
+
+      await db.collection("clients").doc(caseData.clientId).update({
+        "stats.activeCases": activeCasesSnapshot.size,
+      });
+
+      logger.info(`onCaseDeleted: Updated stats for client ${caseData.clientId}`);
+    } catch (error) {
+      logger.error("onCaseDeleted: Error updating client stats", error);
+    }
+  }
+);
+
+// Update client stats when finance (invoice) is created
+export const onFinanceCreated = onDocumentCreated(
+  {
+    document: "finances/{financeId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const financeData = event.data?.data();
+      if (!financeData?.clientId || financeData.type !== "invoice") {
+        return;
+      }
+
+      // Sum all invoices for this client
+      const invoicesSnapshot = await db
+        .collection("finances")
+        .where("clientId", "==", financeData.clientId)
+        .where("type", "==", "invoice")
+        .get();
+
+      const totalInvoiced = invoicesSnapshot.docs.reduce((sum, doc) => {
+        return sum + (doc.data().total || 0);
+      }, 0);
+
+      await db.collection("clients").doc(financeData.clientId).update({
+        "stats.totalInvoiced": totalInvoiced,
+      });
+
+      logger.info(`onFinanceCreated: Updated totalInvoiced for client ${financeData.clientId}`);
+    } catch (error) {
+      logger.error("onFinanceCreated: Error updating client stats", error);
+    }
+  }
+);
+
+// Update client stats when finance (invoice) is updated (status change)
+export const onFinanceUpdated = onDocumentUpdated(
+  {
+    document: "finances/{financeId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const financeData = event.data?.after.data();
+      if (!financeData?.clientId || financeData.type !== "invoice") {
+        return;
+      }
+
+      // Sum all invoices for this client
+      const invoicesSnapshot = await db
+        .collection("finances")
+        .where("clientId", "==", financeData.clientId)
+        .where("type", "==", "invoice")
+        .get();
+
+      const totalInvoiced = invoicesSnapshot.docs.reduce((sum, doc) => {
+        return sum + (doc.data().total || 0);
+      }, 0);
+
+      await db.collection("clients").doc(financeData.clientId).update({
+        "stats.totalInvoiced": totalInvoiced,
+      });
+
+      logger.info(`onFinanceUpdated: Updated totalInvoiced for client ${financeData.clientId}`);
+    } catch (error) {
+      logger.error("onFinanceUpdated: Error updating client stats", error);
+    }
+  }
+);
+
+// ============================================================================
+// Phase 2: Important Functions
+// ============================================================================
+
+/**
+ * 2.1 updateFinancialTotals - Financial Accuracy
+ * Maintains accurate financial totals across the system
+ */
+
+// Helper function to update system financial stats
+async function updateSystemFinancialStats() {
+  try {
+    const financesSnapshot = await db.collection("finances").get();
+    const expensesSnapshot = await db.collection("expenses").get();
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let totalInvoiced = 0;
+    let totalPaid = 0;
+    let totalPending = 0;
+    let monthlyRevenue = 0;
+    let totalExpenses = 0;
+    let monthlyExpenses = 0;
+
+    // Calculate finance totals
+    financesSnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      if (data.type === "invoice") {
+        totalInvoiced += data.total || 0;
+        if (data.status === "paid" && data.paidAt) {
+          const paidDate = (data.paidAt as Timestamp).toDate();
+          totalPaid += data.total || 0;
+          if (paidDate >= startOfMonth) {
+            monthlyRevenue += data.total || 0;
+          }
+        } else if (data.status === "unpaid" || data.status === "partial") {
+          totalPending += data.total || 0;
+        }
+      }
+    });
+
+    // Calculate expense totals
+    expensesSnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      const expenseDate = (data.date as Timestamp).toDate();
+      totalExpenses += data.amount || 0;
+      if (expenseDate >= startOfMonth) {
+        monthlyExpenses += data.amount || 0;
+      }
+    });
+
+    // Update system_stats
+    const statsRef = db.collection("system_stats").doc("dashboard_overview");
+    const statsDoc = await statsRef.get();
+    const currentStats = statsDoc.data() || {};
+
+    await statsRef.set(
+      {
+        ...currentStats,
+        finances: {
+          totalInvoiced,
+          totalPaid,
+          totalPending,
+          monthlyRevenue,
+          totalExpenses,
+          monthlyExpenses,
+          netProfit: monthlyRevenue - monthlyExpenses,
+        },
+        lastUpdated: FieldValue.serverTimestamp(),
+      },
+      {merge: true}
+    );
+
+    logger.info("updateSystemFinancialStats: Updated financial stats");
+  } catch (error) {
+    logger.error("updateSystemFinancialStats: Error updating financial stats", error);
+  }
+}
+
+// Update financial totals when finance document changes
+export const onFinanceChangeForTotals = onDocumentUpdated(
+  {
+    document: "finances/{financeId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const beforeData = event.data?.before.data();
+      const afterData = event.data?.after.data();
+
+      // Only update if status changed to 'paid' or amount changed
+      if (
+        beforeData?.status !== afterData?.status ||
+        beforeData?.total !== afterData?.total
+      ) {
+        await updateSystemFinancialStats();
+      }
+    } catch (error) {
+      logger.error("onFinanceChangeForTotals: Error updating totals", error);
+    }
+  }
+);
+
+// Update financial totals when expense is created
+export const onExpenseCreated = onDocumentCreated(
+  {
+    document: "expenses/{expenseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      await updateSystemFinancialStats();
+      logger.info("onExpenseCreated: Updated financial totals");
+    } catch (error) {
+      logger.error("onExpenseCreated: Error updating totals", error);
+    }
+  }
+);
+
+// Update financial totals when expense is updated
+export const onExpenseUpdated = onDocumentUpdated(
+  {
+    document: "expenses/{expenseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      await updateSystemFinancialStats();
+      logger.info("onExpenseUpdated: Updated financial totals");
+    } catch (error) {
+      logger.error("onExpenseUpdated: Error updating totals", error);
+    }
+  }
+);
+
+// Update financial totals and invoice status when collection record is created
+export const onCollectionRecordCreated = onDocumentCreated(
+  {
+    document: "collectionRecords/{recordId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const recordData = event.data?.data();
+      if (!recordData?.invoiceId) {
+        return;
+      }
+
+      // Get the invoice
+      const invoiceRef = db.collection("finances").doc(recordData.invoiceId);
+      const invoiceDoc = await invoiceRef.get();
+
+      if (!invoiceDoc.exists) {
+        logger.warn(`onCollectionRecordCreated: Invoice ${recordData.invoiceId} not found`);
+        return;
+      }
+
+      const invoiceData = invoiceDoc.data();
+      const currentPaid = invoiceData?.paidAmount || 0;
+      const newPaidAmount = currentPaid + (recordData.amount || 0);
+      const invoiceTotal = invoiceData?.total || 0;
+
+      // Update invoice payment status
+      let newStatus = invoiceData?.status || "unpaid";
+      if (newPaidAmount >= invoiceTotal) {
+        newStatus = "paid";
+      } else if (newPaidAmount > 0) {
+        newStatus = "partial";
+      }
+
+      await invoiceRef.update({
+        paidAmount: newPaidAmount,
+        status: newStatus,
+        paidAt: newStatus === "paid" ? FieldValue.serverTimestamp() : invoiceData?.paidAt,
+      });
+
+      // Update system financial stats
+      await updateSystemFinancialStats();
+
+      logger.info(
+        `onCollectionRecordCreated: Updated invoice ${recordData.invoiceId} status to ${newStatus}`
+      );
+    } catch (error) {
+      logger.error("onCollectionRecordCreated: Error processing collection record", error);
+    }
+  }
+);
+
+/**
+ * 2.2 sendAppointmentReminder - User Experience
+ * Sends SMS reminders for appointments 24 hours before scheduled time
+ */
+export const sendAppointmentReminder = onSchedule(
+  {
+    schedule: "every 1 hours",
+    timeZone: "UTC",
+    maxInstances: 1,
+  },
+  async (event) => {
+    try {
+      const now = new Date();
+      const in24Hours = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      const in25Hours = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+
+      // Query appointments that need reminders
+      const appointmentsSnapshot = await db
+        .collection("appointments")
+        .where("status", "==", "scheduled")
+        .where("smsReminderSent", "==", false)
+        .get();
+
+      const appointmentsToRemind = appointmentsSnapshot.docs.filter((doc) => {
+        const data = doc.data();
+        const dateTime = (data.dateTime as Timestamp).toDate();
+        return dateTime >= in24Hours && dateTime <= in25Hours;
+      });
+
+      if (appointmentsToRemind.length === 0) {
+        logger.info("sendAppointmentReminder: No appointments to remind");
+        return;
+      }
+
+      logger.info(`sendAppointmentReminder: Found ${appointmentsToRemind.length} appointments to remind`);
+
+      // Check if Twilio is configured (using environment variables)
+      const twilioAccountSid = process.env.TWILIO_ACCOUNT_SID;
+      const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
+      const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+
+      if (!twilioAccountSid || !twilioAuthToken || !twilioPhoneNumber) {
+        logger.warn("sendAppointmentReminder: Twilio not configured, skipping SMS");
+        // Mark as sent anyway to avoid retrying
+        for (const appointmentDoc of appointmentsToRemind) {
+          await appointmentDoc.ref.update({
+            smsReminderSent: true,
+            reminderSentAt: FieldValue.serverTimestamp(),
+            reminderError: "Twilio not configured",
+          });
+        }
+        return;
+      }
+
+      // Import Twilio dynamically
+      let twilioClient: any;
+      try {
+        const twilio = (await import("twilio")).default;
+        twilioClient = twilio(twilioAccountSid, twilioAuthToken);
+      } catch (error) {
+        logger.error("sendAppointmentReminder: Failed to import Twilio", error);
+        return;
+      }
+
+      for (const appointmentDoc of appointmentsToRemind) {
+        const appointment = appointmentDoc.data();
+        const clientId = appointment.clientId;
+
+        if (!clientId) {
+          logger.warn(`sendAppointmentReminder: Appointment ${appointmentDoc.id} has no clientId`);
+          continue;
+        }
+
+        // Get client phone number
+        const clientDoc = await db.collection("clients").doc(clientId).get();
+        if (!clientDoc.exists) {
+          logger.warn(`sendAppointmentReminder: Client ${clientId} not found`);
+          continue;
+        }
+
+        const clientData = clientDoc.data();
+        const clientPhone = clientData?.contact?.phone || clientData?.phoneNumber;
+
+        if (!clientPhone) {
+          logger.warn(`sendAppointmentReminder: Client ${clientId} has no phone number`);
+          // Mark as sent to avoid retrying
+          await appointmentDoc.ref.update({
+            smsReminderSent: true,
+            reminderSentAt: FieldValue.serverTimestamp(),
+            reminderError: "No phone number",
+          });
+          continue;
+        }
+
+        // Format appointment date/time
+        const appointmentDateTime = (appointment.dateTime as Timestamp).toDate();
+        const formattedDateTime = appointmentDateTime.toLocaleString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "UTC",
+        });
+
+        // Send SMS
+        try {
+          await twilioClient.messages.create({
+            body: `Reminder: You have an appointment tomorrow at ${formattedDateTime}`,
+            from: twilioPhoneNumber,
+            to: clientPhone,
+          });
+
+          await appointmentDoc.ref.update({
+            smsReminderSent: true,
+            reminderSentAt: FieldValue.serverTimestamp(),
+          });
+
+          logger.info(`sendAppointmentReminder: Sent SMS to ${clientPhone} for appointment ${appointmentDoc.id}`);
+        } catch (error) {
+          logger.error(`sendAppointmentReminder: Failed to send SMS to ${clientPhone}`, error);
+          // Don't mark as sent if there was an error, so it can retry
+        }
+      }
+    } catch (error) {
+      logger.error("sendAppointmentReminder: Error processing reminders", error);
+    }
+  }
+);
+
+// ============================================================================
+// Phase 3: Enhancement Functions
+// ============================================================================
+
+/**
+ * 3.1 Search Indexing (Algolia)
+ * Keeps Algolia search index synchronized with Firestore
+ */
+
+/**
+ * Helper function to index document to Algolia
+ * @param {string} indexName - The Algolia index name
+ * @param {string} objectId - The document object ID
+ * @param {Record<string, unknown>} data - The data to index
+ */
+async function indexToAlgolia(
+  indexName: string,
+  objectId: string,
+  data: Record<string, unknown>
+) {
+  try {
+    const algoliaAppId = process.env.ALGOLIA_APP_ID;
+    const algoliaApiKey = process.env.ALGOLIA_API_KEY;
+
+    if (!algoliaAppId || !algoliaApiKey) {
+      logger.warn("indexToAlgolia: Algolia not configured");
+      return;
+    }
+
+    let algoliasearch: any;
+    try {
+      const algoliaModule = await import("algoliasearch");
+      // algoliasearch v5 uses named export 'algoliasearch'
+      algoliasearch = (algoliaModule as any).algoliasearch;
+    } catch (error) {
+      logger.error("indexToAlgolia: Failed to import algoliasearch", error);
+      return;
+    }
+    if (!algoliasearch) {
+      logger.error("indexToAlgolia: algoliasearch function not found");
+      return;
+    }
+    const client = algoliasearch(algoliaAppId, algoliaApiKey);
+    const index = client.initIndex(indexName);
+
+    await index.saveObject({
+      objectID: objectId,
+      ...data,
+    });
+
+    logger.info(`indexToAlgolia: Indexed ${objectId} to ${indexName}`);
+  } catch (error) {
+    logger.error(`indexToAlgolia: Error indexing ${objectId}`, error);
+  }
+}
+
+/**
+ * Helper function to remove document from Algolia
+ * @param {string} indexName - The Algolia index name
+ * @param {string} objectId - The document object ID
+ */
+async function removeFromAlgolia(indexName: string, objectId: string) {
+  try {
+    const algoliaAppId = process.env.ALGOLIA_APP_ID;
+    const algoliaApiKey = process.env.ALGOLIA_API_KEY;
+
+    if (!algoliaAppId || !algoliaApiKey) {
+      logger.warn("removeFromAlgolia: Algolia not configured");
+      return;
+    }
+
+    let algoliasearch: any;
+    try {
+      const algoliaModule = await import("algoliasearch");
+      // algoliasearch v5 uses named export 'algoliasearch'
+      algoliasearch = (algoliaModule as any).algoliasearch;
+    } catch (error) {
+      logger.error("removeFromAlgolia: Failed to import algoliasearch", error);
+      return;
+    }
+    if (!algoliasearch) {
+      logger.error("removeFromAlgolia: algoliasearch function not found");
+      return;
+    }
+    const client = algoliasearch(algoliaAppId, algoliaApiKey);
+    const index = client.initIndex(indexName);
+
+    await index.deleteObject(objectId);
+
+    logger.info(`removeFromAlgolia: Removed ${objectId} from ${indexName}`);
+  } catch (error) {
+    logger.error(`removeFromAlgolia: Error removing ${objectId}`, error);
+  }
+}
+
+// Index clients
+export const onClientCreated = onDocumentCreated(
+  {
+    document: "clients/{clientId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const clientData = event.data?.data();
+      if (!clientData) return;
+
+      const searchableData = {
+        name: clientData.name || "",
+        email: clientData.email || "",
+        phoneNumber: clientData.phoneNumber || clientData.contact?.phone || "",
+        type: clientData.type || "",
+        companyName: clientData.companyName || "",
+        idNumber: clientData.idNumber || "",
+        commercialRecord: clientData.commercialRecord || "",
+      };
+
+      await indexToAlgolia("clients", event.params.clientId, searchableData);
+    } catch (error) {
+      logger.error("onClientCreated: Error indexing client", error);
+    }
+  }
+);
+
+export const onClientUpdated = onDocumentUpdated(
+  {
+    document: "clients/{clientId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const clientData = event.data?.after.data();
+      if (!clientData) return;
+
+      const searchableData = {
+        name: clientData.name || "",
+        email: clientData.email || "",
+        phoneNumber: clientData.phoneNumber || clientData.contact?.phone || "",
+        type: clientData.type || "",
+        companyName: clientData.companyName || "",
+        idNumber: clientData.idNumber || "",
+        commercialRecord: clientData.commercialRecord || "",
+      };
+
+      await indexToAlgolia("clients", event.params.clientId, searchableData);
+    } catch (error) {
+      logger.error("onClientUpdated: Error indexing client", error);
+    }
+  }
+);
+
+export const onClientDeleted = onDocumentDeleted(
+  {
+    document: "clients/{clientId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      await removeFromAlgolia("clients", event.params.clientId);
+    } catch (error) {
+      logger.error("onClientDeleted: Error removing client from index", error);
+    }
+  }
+);
+
+// Index cases
+export const onCaseCreatedForSearch = onDocumentCreated(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const caseData = event.data?.data();
+      if (!caseData) return;
+
+      const searchableData = {
+        title: caseData.title || "",
+        caseNumber: caseData.caseNumber || "",
+        description: caseData.description || "",
+        status: caseData.status || "",
+        clientId: caseData.clientId || "",
+        caseType: caseData.caseType || "",
+      };
+
+      await indexToAlgolia("cases", event.params.caseId, searchableData);
+    } catch (error) {
+      logger.error("onCaseCreatedForSearch: Error indexing case", error);
+    }
+  }
+);
+
+export const onCaseUpdatedForSearch = onDocumentUpdated(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const caseData = event.data?.after.data();
+      if (!caseData) return;
+
+      const searchableData = {
+        title: caseData.title || "",
+        caseNumber: caseData.caseNumber || "",
+        description: caseData.description || "",
+        status: caseData.status || "",
+        clientId: caseData.clientId || "",
+        caseType: caseData.caseType || "",
+      };
+
+      await indexToAlgolia("cases", event.params.caseId, searchableData);
+    } catch (error) {
+      logger.error("onCaseUpdatedForSearch: Error indexing case", error);
+    }
+  }
+);
+
+export const onCaseDeletedForSearch = onDocumentDeleted(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      await removeFromAlgolia("cases", event.params.caseId);
+    } catch (error) {
+      logger.error(
+        "onCaseDeletedForSearch: Error removing case from index",
+        error
+      );
+    }
+  }
+);
+
+// Index contracts
+export const onContractCreated = onDocumentCreated(
+  {
+    document: "contracts/{contractId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const contractData = event.data?.data();
+      if (!contractData) return;
+
+      const searchableData = {
+        title: contractData.title || "",
+        contractNumber: contractData.contractNumber || "",
+        description: contractData.description || "",
+        status: contractData.status || "",
+        clientId: contractData.clientId || "",
+        contractType: contractData.contractType || "",
+      };
+
+      await indexToAlgolia("contracts", event.params.contractId, searchableData);
+    } catch (error) {
+      logger.error("onContractCreated: Error indexing contract", error);
+    }
+  }
+);
+
+export const onContractUpdated = onDocumentUpdated(
+  {
+    document: "contracts/{contractId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const contractData = event.data?.after.data();
+      if (!contractData) return;
+
+      const searchableData = {
+        title: contractData.title || "",
+        contractNumber: contractData.contractNumber || "",
+        description: contractData.description || "",
+        status: contractData.status || "",
+        clientId: contractData.clientId || "",
+        contractType: contractData.contractType || "",
+      };
+
+      await indexToAlgolia("contracts", event.params.contractId, searchableData);
+    } catch (error) {
+      logger.error("onContractUpdated: Error indexing contract", error);
+    }
+  }
+);
+
+export const onContractDeleted = onDocumentDeleted(
+  {
+    document: "contracts/{contractId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      await removeFromAlgolia("contracts", event.params.contractId);
+    } catch (error) {
+      logger.error(
+        "onContractDeleted: Error removing contract from index",
+        error
+      );
+    }
+  }
+);
+
+/**
+ * 3.2 File Processing
+ * Processes uploaded images and documents
+ */
+export const onFileUploaded = onObjectFinalized(
+  {
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const filePath = event.data.name;
+      const contentType = event.data.contentType;
+
+      logger.info(`onFileUploaded: Processing file ${filePath}`);
+
+      // Extract metadata based on file type
+      // For images, we could generate thumbnails here
+      // For documents, we could extract text/metadata
+      // This is a placeholder for future implementation
+
+      // Update document reference if it exists in Firestore
+      // The path structure determines which collection to update
+      if (filePath.startsWith("documents/")) {
+        // Extract document ID from path if possible
+        const pathParts = filePath.split("/");
+        if (pathParts.length >= 3) {
+          // Update document metadata in Firestore if document exists
+          // This would require a documents collection
+          logger.info(
+            `onFileUploaded: Document path detected: ${pathParts.join("/")}`
+          );
+        }
+      }
+
+      logger.info(`onFileUploaded: Processed file ${filePath} (${contentType || "unknown type"})`);
+    } catch (error) {
+      logger.error("onFileUploaded: Error processing file", error);
+    }
+  }
+);
+
+/**
+ * 3.3 Additional Notifications
+ * Sends notifications for important events
+ */
+
+/**
+ * Notification helper (placeholder for future implementation)
+ * @param {string} userId - The user ID to send notification to
+ * @param {string} title - Notification title
+ * @param {string} message - Notification message
+ * @param {string} type - Notification type
+ */
+async function sendNotification(
+  userId: string,
+  title: string,
+  message: string,
+  type: string
+) {
+  try {
+    // This would integrate with Firebase Cloud Messaging or a notification service
+    // For now, we'll just log it
+    logger.info(
+      `sendNotification: ${type} notification to ${userId}: ${title} - ${message}`
+    );
+
+    // Store notification in Firestore for the user
+    await db.collection("notifications").add({
+      userId,
+      title,
+      message,
+      type,
+      read: false,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    logger.error("sendNotification: Error sending notification", error);
+  }
+}
+
+// Notify on task assignment
+export const onTaskCreated = onDocumentCreated(
+  {
+    document: "tasks/{taskId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const taskData = event.data?.data();
+      if (!taskData?.assignedTo) return;
+
+      await sendNotification(
+        taskData.assignedTo,
+        "New Task Assigned",
+        `You have been assigned a new task: ${taskData.title || "Untitled"}`,
+        "task_assigned"
+      );
+    } catch (error) {
+      logger.error("onTaskCreated: Error sending notification", error);
+    }
+  }
+);
+
+// Notify on case status change
+export const onCaseStatusChanged = onDocumentUpdated(
+  {
+    document: "cases/{caseId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const beforeData = event.data?.before.data();
+      const afterData = event.data?.after.data();
+
+      if (beforeData?.status === afterData?.status) {
+        return; // Status didn't change
+      }
+
+      const caseTitle = afterData?.title || "Case";
+      const newStatus = afterData?.status || "";
+
+      // Notify lead lawyer
+      if (afterData?.leadLawyerId) {
+        await sendNotification(
+          afterData.leadLawyerId,
+          "Case Status Updated",
+          `${caseTitle} status changed to ${newStatus}`,
+          "case_status_changed"
+        );
+      }
+
+      // Notify client
+      if (afterData?.clientId) {
+        await sendNotification(
+          afterData.clientId,
+          "Case Status Updated",
+          `Your case "${caseTitle}" status changed to ${newStatus}`,
+          "case_status_changed"
+        );
+      }
+    } catch (error) {
+      logger.error(
+        "onCaseStatusChanged: Error sending notification",
+        error
+      );
+    }
+  }
+);
+
+// Notify on payment received
+export const onPaymentReceived = onDocumentCreated(
+  {
+    document: "collectionRecords/{recordId}",
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const recordData = event.data?.data();
+      if (!recordData?.invoiceId) return;
+
+      // Get invoice to find client
+      const invoiceDoc = await db.collection("finances").doc(recordData.invoiceId).get();
+      if (!invoiceDoc.exists) return;
+
+      const invoiceData = invoiceDoc.data();
+      const clientId = invoiceData?.clientId;
+
+      if (clientId) {
+        await sendNotification(
+          clientId,
+          "Payment Received",
+          `Payment of ${recordData.amount || 0} received for invoice ${recordData.invoiceId}`,
+          "payment_received"
+        );
+      }
+    } catch (error) {
+      logger.error("onPaymentReceived: Error sending notification", error);
+    }
+  }
+);
+
+// Notify on document upload
+export const onDocumentUploaded = onObjectFinalized(
+  {
+    maxInstances: 10,
+  },
+  async (event) => {
+    try {
+      const filePath = event.data.name;
+
+      // Extract user ID from path if it's in documents/{userId}/...
+      if (filePath.startsWith("documents/")) {
+        const pathParts = filePath.split("/");
+        if (pathParts.length >= 2) {
+          const userId = pathParts[1];
+
+          await sendNotification(
+            userId,
+            "Document Uploaded",
+            `Document ${pathParts[pathParts.length - 1]} has been uploaded`,
+            "document_uploaded"
+          );
+        }
+      }
+    } catch (error) {
+      logger.error(
+        "onDocumentUploaded: Error sending notification",
+        error
+      );
+    }
+  }
+);

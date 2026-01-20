@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Primary color
-  static const Color primaryColor = Color(0xFF1D1F56);
+  static const Color primaryColor = Color.fromARGB(255, 107, 112, 255);
 
   // Light theme colors
   static const Color lightBackgroundColor = Color(0xFFFFFFFF);
@@ -17,24 +16,25 @@ class AppTheme {
   static const Color darkTextColor = Color(0xFFFFFFFF);
   static const Color darkSecondaryTextColor = Color(0xFFB0B0B0);
 
-  // Get Rubik text theme
-  static TextTheme _getRubikTextTheme(ColorScheme colorScheme) {
-    return GoogleFonts.rubikTextTheme().copyWith(
-      displayLarge: GoogleFonts.rubik(color: colorScheme.onSurface),
-      displayMedium: GoogleFonts.rubik(color: colorScheme.onSurface),
-      displaySmall: GoogleFonts.rubik(color: colorScheme.onSurface),
-      headlineLarge: GoogleFonts.rubik(color: colorScheme.onSurface),
-      headlineMedium: GoogleFonts.rubik(color: colorScheme.onSurface),
-      headlineSmall: GoogleFonts.rubik(color: colorScheme.onSurface),
-      titleLarge: GoogleFonts.rubik(color: colorScheme.onSurface),
-      titleMedium: GoogleFonts.rubik(color: colorScheme.onSurface),
-      titleSmall: GoogleFonts.rubik(color: colorScheme.onSurface),
-      bodyLarge: GoogleFonts.rubik(color: colorScheme.onSurface),
-      bodyMedium: GoogleFonts.rubik(color: colorScheme.onSurface),
-      bodySmall: GoogleFonts.rubik(color: colorScheme.onSurface),
-      labelLarge: GoogleFonts.rubik(color: colorScheme.onSurface),
-      labelMedium: GoogleFonts.rubik(color: colorScheme.onSurface),
-      labelSmall: GoogleFonts.rubik(color: colorScheme.onSurface),
+  // Get SST text theme
+  static TextTheme _getSSTTextTheme(ColorScheme colorScheme) {
+    const textStyle = TextStyle(fontFamily: 'SST');
+    return TextTheme(
+      displayLarge: textStyle.copyWith(color: colorScheme.onSurface),
+      displayMedium: textStyle.copyWith(color: colorScheme.onSurface),
+      displaySmall: textStyle.copyWith(color: colorScheme.onSurface),
+      headlineLarge: textStyle.copyWith(color: colorScheme.onSurface),
+      headlineMedium: textStyle.copyWith(color: colorScheme.onSurface),
+      headlineSmall: textStyle.copyWith(color: colorScheme.onSurface),
+      titleLarge: textStyle.copyWith(color: colorScheme.onSurface),
+      titleMedium: textStyle.copyWith(color: colorScheme.onSurface),
+      titleSmall: textStyle.copyWith(color: colorScheme.onSurface),
+      bodyLarge: textStyle.copyWith(color: colorScheme.onSurface),
+      bodyMedium: textStyle.copyWith(color: colorScheme.onSurface),
+      bodySmall: textStyle.copyWith(color: colorScheme.onSurface),
+      labelLarge: textStyle.copyWith(color: colorScheme.onSurface),
+      labelMedium: textStyle.copyWith(color: colorScheme.onSurface),
+      labelSmall: textStyle.copyWith(color: colorScheme.onSurface),
     );
   }
 
@@ -56,17 +56,17 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: lightBackgroundColor, // Lighter than surface for body
-      textTheme: _getRubikTextTheme(colorScheme),
-      fontFamily: GoogleFonts.rubik().fontFamily,
+      fontFamily: 'SST',
       appBarTheme: AppBarTheme(
         backgroundColor: lightBackgroundColor, // Match body background
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.rubik(
+        titleTextStyle: TextStyle(
+          fontFamily: 'SST',
           color: colorScheme.onSurface,
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
         ),
       ),
       cardTheme: CardThemeData(
@@ -80,9 +80,10 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          textStyle: GoogleFonts.rubik(
+          textStyle: const TextStyle(
+            fontFamily: 'SST',
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -126,17 +127,18 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: darkBackgroundColor, // Lighter than surface for body
-      textTheme: _getRubikTextTheme(colorScheme),
-      fontFamily: GoogleFonts.rubik().fontFamily,
+      textTheme: _getSSTTextTheme(colorScheme),
+      fontFamily: 'SST',
       appBarTheme: AppBarTheme(
         backgroundColor: darkBackgroundColor, // Match body background
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: false,
-        titleTextStyle: GoogleFonts.rubik(
+        titleTextStyle: TextStyle(
+          fontFamily: 'SST',
           color: colorScheme.onSurface,
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w500,
         ),
       ),
       cardTheme: CardThemeData(
@@ -150,9 +152,10 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          textStyle: GoogleFonts.rubik(
+          textStyle: const TextStyle(
+            fontFamily: 'SST',
             fontSize: 16,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),

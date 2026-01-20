@@ -31,6 +31,12 @@
 
   <title>lefni</title>
   <link rel="manifest" href="manifest.json">
+  
+  <!-- reCAPTCHA for Firebase Phone Authentication on Web -->
+  <!-- Firebase Auth uses its own reCAPTCHA key (6LclC0IsAAAAANx9c8aqfrOgYzqajmXuOmLOsA-n) for SMS protection -->
+  <!-- The firebase_auth Flutter package will automatically handle reCAPTCHA verification -->
+  <!-- Note: Firebase Auth may inject reCAPTCHA automatically, but loading it here ensures it's available -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>

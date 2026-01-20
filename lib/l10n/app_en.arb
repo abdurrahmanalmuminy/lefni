@@ -64,13 +64,899 @@
   "@invoices": {
     "description": "Invoices tab"
   },
-  "partners": "Partners",
-  "@partners": {
-    "description": "Partners tab"
-  },
   "users": "Users",
   "@users": {
     "description": "Users tab"
+  },
+  "welcomeTo": "Welcome to",
+  "@welcomeTo": {
+    "description": "Welcome message prefix"
+  },
+  "dashboard": "Dashboard",
+  "@dashboard": {
+    "description": "Dashboard title"
+  },
+  "demoPageMessage": "This is a demo page. You can replace this content with any content you want.",
+  "@demoPageMessage": {
+    "description": "Demo page placeholder message"
+  },
+  "userName": "Abdurrahman Hussein",
+  "@userName": {
+    "description": "User name display"
+  },
+  "invoicesIssued": "Issued Invoices",
+  "@invoicesIssued": {
+    "description": "Issued invoices menu item"
+  },
+  "invoicesReceived": "Received Invoices",
+  "@invoicesReceived": {
+    "description": "Received invoices menu item"
+  },
+  "invoicesPending": "Pending Invoices",
+  "@invoicesPending": {
+    "description": "Pending invoices menu item"
+  },
+  "invoicesPaid": "Paid Invoices",
+  "@invoicesPaid": {
+    "description": "Paid invoices menu item"
+  },
+  "createInvoice": "Create Invoice",
+  "@createInvoice": {
+    "description": "Create invoice menu item"
+  },
+  "invoiceSettings": "Invoice Settings",
+  "@invoiceSettings": {
+    "description": "Invoice settings menu item"
+  },
+  "userContracts": "User Contracts",
+  "@userContracts": {
+    "description": "User contracts menu item"
+  },
+  "userTasks": "User Tasks",
+  "@userTasks": {
+    "description": "User tasks menu item"
+  },
+  "userRatings": "User Ratings",
+  "@userRatings": {
+    "description": "User ratings menu item"
+  },
+  "userStats": "User Statistics",
+  "@userStats": {
+    "description": "User statistics menu item"
+  },
+  "usersList": "Users List",
+  "@usersList": {
+    "description": "Users list menu item"
+  },
+  "addUser": "Add User",
+  "@addUser": {
+    "description": "Add user menu item"
+  },
+  "userRoles": "User Roles",
+  "@userRoles": {
+    "description": "User roles menu item"
+  },
+  "userPermissions": "User Permissions",
+  "@userPermissions": {
+    "description": "User permissions menu item"
+  },
+  "userActivity": "User Activity",
+  "@userActivity": {
+    "description": "User activity menu item"
+  },
+  "userSettings": "User Settings",
+  "@userSettings": {
+    "description": "User settings menu item"
+  },
+  "monthlyReports": "Monthly Reports",
+  "@monthlyReports": {
+    "description": "Monthly reports menu item"
+  },
+  "yearlyReports": "Yearly Reports",
+  "@yearlyReports": {
+    "description": "Yearly reports menu item"
+  },
+  "casesStats": "Cases Statistics",
+  "@casesStats": {
+    "description": "Cases statistics menu item"
+  },
+  "clientReports": "Client Reports",
+  "@clientReports": {
+    "description": "Client reports menu item"
+  },
+  "financialReports": "Financial Reports",
+  "@financialReports": {
+    "description": "Financial reports menu item"
+  },
+  "performanceReports": "Performance Reports",
+  "@performanceReports": {
+    "description": "Performance reports menu item"
+  },
+  "contractsManagement": "Contracts Management",
+  "createContract": "Create Contract",
+  "editContract": "Edit Contract",
+  "contractArchive": "Contract Archive",
+  "searchContracts": "Search Contracts",
+  "linkToClient": "Link to Client",
+  "linkToCase": "Link to Case",
+  "uploadFiles": "Upload Files",
+  "electronicSignature": "Electronic Signature",
+  "contractTypes": "Contract Types",
+  "clientContracts": "Client Contracts",
+  "lawyerContracts": "Lawyer Contracts",
+  "engineeringContracts": "Engineering Office Contracts",
+  "accountantContracts": "Accountant Contracts",
+  "clientsManagement": "Clients Management",
+  "clientProfile": "Client Profile",
+  "addClient": "Add Client",
+  "clientDocuments": "Client Documents",
+  "officeDocuments": "Office Documents",
+  "serviceCatalog": "Service Catalog",
+  "individualServices": "Individual Services",
+  "businessServices": "Business Services",
+  "consultation": "Consultation",
+  "powerOfAttorney": "Power of Attorney",
+  "notarization": "Notarization",
+  "caseStudy": "Case Study",
+  "reconciliationRequest": "Reconciliation Request",
+  "governance": "Governance",
+  "intellectualProperty": "Intellectual Property",
+  "annualContracts": "Annual Contracts",
+  "debtCollection": "Debt Collection",
+  "arbitration": "Arbitration",
+  "casesManagement": "Cases Management",
+  "addCase": "Add Case",
+  "caseStatus": "Case Status",
+  "potentialCase": "Potential",
+  "underReview": "Under Review",
+  "closedCase": "Closed",
+  "caseNumber": "Case Number",
+  "caseType": "Case Type",
+  "court": "Court",
+  "department": "Department",
+  "responsibleLawyer": "Responsible Lawyer",
+  "caseFiles": "Case Files",
+  "letters": "Letters",
+  "objections": "Objections",
+  "memos": "Memos",
+  "linkSessions": "Link Sessions",
+  "linkReports": "Link Reports",
+  "tasksSessions": "Tasks & Sessions",
+  "officeTasks": "Office Tasks",
+  "assignTask": "Assign Task",
+  "taskDates": "Task Dates",
+  "taskAlerts": "Task Alerts",
+  "progressReports": "Progress Reports",
+  "courtSessions": "Court Sessions",
+  "sessionSchedule": "Session Schedule",
+  "sessionAlerts": "Session Alerts",
+  "sessionReport": "Session Report",
+  "appointmentScheduling": "Appointment Scheduling",
+  "internalAlerts": "Internal Alerts",
+  "smsAlerts": "SMS Alerts",
+  "financial": "Financial",
+  "feesManagement": "Fees Management",
+  "receivables": "Receivables",
+  "receiptVouchers": "Receipt Vouchers",
+  "monthlyFinancial": "Monthly Financial Reports",
+  "collaborators": "Collaborators",
+  "cooperatingLawyers": "Cooperating Lawyers",
+  "agencies": "Agencies",
+  "taskUpdates": "Task Updates",
+  "documentation": "Documentation",
+  "students": "Students",
+  "studentRegistration": "Student Registration",
+  "cv": "CV",
+  "cooperationType": "Cooperation Type",
+  "training": "Training",
+  "caseReferral": "Case Referral",
+  "consultationBooking": "Consultation Booking",
+  "engineeringOffices": "Engineering Offices",
+  "technicalReports": "Technical Reports",
+  "constructionDefects": "Construction Defects",
+  "realEstateDisputes": "Real Estate Disputes",
+  "legalAccountants": "Legal Accountants",
+  "accountingReports": "Accounting Reports",
+  "financialReportRequest": "Financial Report Request",
+  "translators": "Translators",
+  "translationTasks": "Translation Tasks",
+  "translatedFiles": "Translated Files",
+  "invoicesAndRevenues": "Invoices and Revenues",
+  "clientFees": "Client Fees",
+  "collectionRecord": "Collection Record",
+  "expensesAndPayments": "Expenses and Payments",
+  "collaboratorAccounts": "Collaborator Accounts",
+  "login": "Login",
+  "@login": {
+    "description": "Login page title"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Password field label"
+  },
+  "forgotPassword": "Forgot Password?",
+  "@forgotPassword": {
+    "description": "Forgot password link"
+  },
+  "signIn": "Sign In",
+  "@signIn": {
+    "description": "Sign in button"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile menu item"
+  },
+  "signOut": "Sign Out",
+  "@signOut": {
+    "description": "Sign out button"
+  },
+  "signingIn": "Signing in...",
+  "@signingIn": {
+    "description": "Sign in loading state"
+  },
+  "invalidEmail": "Invalid email address",
+  "@invalidEmail": {
+    "description": "Email validation error"
+  },
+  "emailRequired": "Email is required",
+  "@emailRequired": {
+    "description": "Email required validation error"
+  },
+  "passwordRequired": "Password is required",
+  "@passwordRequired": {
+    "description": "Password required validation error"
+  },
+  "passwordTooShort": "Password must be at least 6 characters",
+  "@passwordTooShort": {
+    "description": "Password length validation error"
+  },
+  "loginFailed": "Login failed",
+  "@loginFailed": {
+    "description": "Login error message"
+  },
+  "pleaseWait": "Please wait",
+  "@pleaseWait": {
+    "description": "Loading message"
+  },
+  "noPermission": "You do not have permission to view this section",
+  "@noPermission": {
+    "description": "Access denied message for unauthorized users"
+  },
+  "role": "Role",
+  "@role": {
+    "description": "User role label in profile"
+  },
+  "signUp": "Sign Up",
+  "@signUp": {
+    "description": "Sign up button"
+  },
+  "createAccount": "Create Account",
+  "@createAccount": {
+    "description": "Create account button"
+  },
+  "alreadyHaveAccount": "Already have an account?",
+  "@alreadyHaveAccount": {
+    "description": "Link to switch to login"
+  },
+  "dontHaveAccount": "Don't have an account?",
+  "@dontHaveAccount": {
+    "description": "Link to switch to sign up"
+  },
+  "confirmPassword": "Confirm Password",
+  "@confirmPassword": {
+    "description": "Confirm password field label"
+  },
+  "passwordsDoNotMatch": "Passwords do not match",
+  "@passwordsDoNotMatch": {
+    "description": "Password mismatch validation error"
+  },
+  "accountCreated": "Account created successfully",
+  "@accountCreated": {
+    "description": "Success message after sign up"
+  },
+  "signUpFailed": "Sign up failed",
+  "@signUpFailed": {
+    "description": "Sign up error message"
+  },
+  "passwordResetEmailSent": "Password reset email sent. Check your inbox.",
+  "@passwordResetEmailSent": {
+    "description": "Success message for password reset"
+  },
+  "sendResetLink": "Send Reset Link",
+  "@sendResetLink": {
+    "description": "Button to send password reset link"
+  },
+  "phoneNumber": "Phone Number",
+  "@phoneNumber": {
+    "description": "Phone number field label"
+  },
+  "phoneNumberRequired": "Phone number is required",
+  "@phoneNumberRequired": {
+    "description": "Phone number required validation error"
+  },
+  "name": "Name",
+  "@name": {
+    "description": "Name field label"
+  },
+  "nameRequired": "Name is required",
+  "@nameRequired": {
+    "description": "Name required validation error"
+  },
+  "next": "Next",
+  "@next": {
+    "description": "Next button"
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Back button"
+  },
+  "step": "Step",
+  "@step": {
+    "description": "Step label"
+  },
+  "stepOf": "of",
+  "@stepOf": {
+    "description": "Of label for steps"
+  },
+  "accountInformation": "Account Information",
+  "@accountInformation": {
+    "description": "Account information step title"
+  },
+  "profileInformation": "Profile Information",
+  "@profileInformation": {
+    "description": "Profile information step title"
+  },
+  "specialization": "Specialization",
+  "@specialization": {
+    "description": "Specialization field for lawyers"
+  },
+  "licenseNumber": "License Number",
+  "@licenseNumber": {
+    "description": "License number field"
+  },
+  "firmName": "Firm Name",
+  "@firmName": {
+    "description": "Firm name field"
+  },
+  "university": "University",
+  "@university": {
+    "description": "University field for students"
+  },
+  "bankAccount": "Bank Account",
+  "@bankAccount": {
+    "description": "Bank account field"
+  },
+  "isTraining": "Training Program",
+  "@isTraining": {
+    "description": "Training program checkbox for students"
+  },
+  "cooperationType": "Cooperation Type",
+  "@cooperationType": {
+    "description": "Cooperation type field"
+  },
+  "training": "Training",
+  "@training": {
+    "description": "Training cooperation type"
+  },
+  "caseSourcing": "Case Sourcing",
+  "@caseSourcing": {
+    "description": "Case sourcing cooperation type"
+  },
+  "userCreatedSuccessfully": "User created successfully",
+  "@userCreatedSuccessfully": {
+    "description": "Success message after creating user"
+  },
+  "appointmentCreatedSuccessfully": "Appointment created successfully",
+  "@appointmentCreatedSuccessfully": {
+    "description": "Success message after creating appointment"
+  },
+  "documentUploadedSuccessfully": "Document uploaded successfully",
+  "@documentUploadedSuccessfully": {
+    "description": "Success message after uploading document"
+  },
+  "clientCreatedSuccessfully": "Client created successfully",
+  "@clientCreatedSuccessfully": {
+    "description": "Success message after creating client"
+  },
+  "caseCreatedSuccessfully": "Case created successfully",
+  "@caseCreatedSuccessfully": {
+    "description": "Success message after creating case"
+  },
+  "taskCreatedSuccessfully": "Task created successfully",
+  "@taskCreatedSuccessfully": {
+    "description": "Success message after creating task"
+  },
+  "sessionCreatedSuccessfully": "Session created successfully",
+  "@sessionCreatedSuccessfully": {
+    "description": "Success message after creating session"
+  },
+  "contractCreatedSuccessfully": "Contract created successfully",
+  "@contractCreatedSuccessfully": {
+    "description": "Success message after creating contract"
+  },
+  "financeRecordCreatedSuccessfully": "Finance record created successfully",
+  "@financeRecordCreatedSuccessfully": {
+    "description": "Success message after creating finance record"
+  },
+  "pleaseSelectClient": "Please select a client",
+  "@pleaseSelectClient": {
+    "description": "Validation message for client selection"
+  },
+  "pleaseSelectDateTime": "Please select date and time",
+  "@pleaseSelectDateTime": {
+    "description": "Validation message for date/time selection"
+  },
+  "pleaseSelectFile": "Please select a file",
+  "@pleaseSelectFile": {
+    "description": "Validation message for file selection"
+  },
+  "pleaseSelectCase": "Please select a case",
+  "@pleaseSelectCase": {
+    "description": "Validation message for case selection"
+  },
+  "pleaseSelectLawyer": "Please select a lawyer",
+  "@pleaseSelectLawyer": {
+    "description": "Validation message for lawyer selection"
+  },
+  "pleaseSelectAssignee": "Please select assignee",
+  "@pleaseSelectAssignee": {
+    "description": "Validation message for assignee selection"
+  },
+  "pleaseSelectRelatedItem": "Please select related item",
+  "@pleaseSelectRelatedItem": {
+    "description": "Validation message for related item selection"
+  },
+  "pleaseSelectDates": "Please select start and due dates",
+  "@pleaseSelectDates": {
+    "description": "Validation message for date selection"
+  },
+  "pleaseSelectLeadLawyer": "Please select a lead lawyer",
+  "@pleaseSelectLeadLawyer": {
+    "description": "Validation message for lead lawyer selection"
+  },
+  "serviceAndPriceRequired": "Service and price are required",
+  "@serviceAndPriceRequired": {
+    "description": "Validation message for finance item"
+  },
+  "pleaseAddAtLeastOneItem": "Please add at least one item",
+  "@pleaseAddAtLeastOneItem": {
+    "description": "Validation message for finance items"
+  },
+  "dateAndTime": "Date & Time",
+  "@dateAndTime": {
+    "description": "Date and time field label"
+  },
+  "purpose": "Purpose",
+  "@purpose": {
+    "description": "Purpose field label"
+  },
+  "category": "Category",
+  "@category": {
+    "description": "Category field label"
+  },
+  "clientOptional": "Client (Optional)",
+  "@clientOptional": {
+    "description": "Optional client field label"
+  },
+  "caseOptional": "Case (Optional)",
+  "@caseOptional": {
+    "description": "Optional case field label"
+  },
+  "type": "Type",
+  "@type": {
+    "description": "Type field label"
+  },
+  "status": "Status",
+  "@status": {
+    "description": "Status field label"
+  },
+  "dueDateOptional": "Due Date (Optional)",
+  "@dueDateOptional": {
+    "description": "Optional due date field label"
+  },
+  "title": "Title",
+  "@title": {
+    "description": "Title field label"
+  },
+  "description": "Description",
+  "@description": {
+    "description": "Description field label"
+  },
+  "assignTo": "Assign To",
+  "@assignTo": {
+    "description": "Assign to field label"
+  },
+  "relatedTo": "Related To",
+  "@relatedTo": {
+    "description": "Related to field label"
+  },
+  "priority": "Priority",
+  "@priority": {
+    "description": "Priority field label"
+  },
+  "startDate": "Start Date",
+  "@startDate": {
+    "description": "Start date field label"
+  },
+  "dueDate": "Due Date",
+  "@dueDate": {
+    "description": "Due date field label"
+  },
+  "addTag": "Add Tag",
+  "@addTag": {
+    "description": "Add tag field label"
+  },
+  "items": "Items",
+  "@items": {
+    "description": "Items label"
+  },
+  "subtotal": "Subtotal",
+  "@subtotal": {
+    "description": "Subtotal label"
+  },
+  "vat": "VAT (15%)",
+  "@vat": {
+    "description": "VAT label"
+  },
+  "total": "Total",
+  "@total": {
+    "description": "Total label"
+  },
+  "notesOptional": "Notes (Optional)",
+  "@notesOptional": {
+    "description": "Optional notes field label"
+  },
+  "location": "Location",
+  "@location": {
+    "description": "Location field label"
+  },
+  "meetingLinkOptional": "Meeting Link (Optional)",
+  "@meetingLinkOptional": {
+    "description": "Optional meeting link field label"
+  },
+  "partyType": "Party Type",
+  "@partyType": {
+    "description": "Party type field label"
+  },
+  "content": "Content",
+  "@content": {
+    "description": "Content field label"
+  },
+  "selectFilesOptional": "Select files (Optional)",
+  "@selectFilesOptional": {
+    "description": "Optional file selection label"
+  },
+  "selectFile": "Select file",
+  "@selectFile": {
+    "description": "File selection label"
+  },
+  "selectDateTime": "Select date and time",
+  "@selectDateTime": {
+    "description": "Date/time selection label"
+  },
+  "none": "None",
+  "@none": {
+    "description": "None option label"
+  },
+  "hasAgency": "Has Agency",
+  "@hasAgency": {
+    "description": "Has agency checkbox label"
+  },
+  "agencyNumber": "Agency Number",
+  "@agencyNumber": {
+    "description": "Agency number field label"
+  },
+  "selectAgencyFile": "Select agency file",
+  "@selectAgencyFile": {
+    "description": "Agency file selection label"
+  },
+  "idNumber": "ID Number",
+  "@idNumber": {
+    "description": "ID number field label"
+  },
+  "crNumber": "CR Number",
+  "@crNumber": {
+    "description": "CR number field label"
+  },
+  "address": "Address",
+  "@address": {
+    "description": "Address field label"
+  },
+  "addressRequired": "Address is required",
+  "@addressRequired": {
+    "description": "Address required validation error"
+  },
+  "leadLawyer": "Lead Lawyer",
+  "@leadLawyer": {
+    "description": "Lead lawyer field label"
+  },
+  "judgeOptional": "Judge (Optional)",
+  "@judgeOptional": {
+    "description": "Optional judge field label"
+  },
+  "lawyer": "Lawyer",
+  "@lawyer": {
+    "description": "Lawyer field label"
+  },
+  "addItem": "Add Item",
+  "@addItem": {
+    "description": "Add item button label"
+  },
+  "addLawyer": "Add Lawyer",
+  "@addLawyer": {
+    "description": "Add lawyer dialog title"
+  },
+  "addStudent": "Add Student",
+  "@addStudent": {
+    "description": "Add student dialog title"
+  },
+  "addEngineer": "Add Engineer",
+  "@addEngineer": {
+    "description": "Add engineer dialog title"
+  },
+  "addAccountant": "Add Accountant",
+  "@addAccountant": {
+    "description": "Add accountant dialog title"
+  },
+  "addTranslator": "Add Translator",
+  "@addTranslator": {
+    "description": "Add translator dialog title"
+  },
+  "selectStartDate": "Select start date",
+  "@selectStartDate": {
+    "description": "Start date selection label"
+  },
+  "selectDueDate": "Select due date",
+  "@selectDueDate": {
+    "description": "Due date selection label"
+  },
+  "selectDueDateOptional": "Select due date",
+  "@selectDueDateOptional": {
+    "description": "Due date selection label for optional field"
+  },
+  "service": "Service",
+  "@service": {
+    "description": "Service field label"
+  },
+  "price": "Price",
+  "@price": {
+    "description": "Price field label"
+  },
+  "quantityOptional": "Quantity (Optional)",
+  "@quantityOptional": {
+    "description": "Optional quantity field label"
+  },
+  "descriptionOptional": "Description (Optional)",
+  "@descriptionOptional": {
+    "description": "Optional description field label"
+  },
+  "clientRequired": "Client is required",
+  "@clientRequired": {
+    "description": "Validation message for required client"
+  },
+  "caseRequired": "Case is required",
+  "@caseRequired": {
+    "description": "Validation message for required case"
+  },
+  "lawyerRequired": "Lawyer is required",
+  "@lawyerRequired": {
+    "description": "Validation message for required lawyer"
+  },
+  "leadLawyerRequired": "Lead lawyer is required",
+  "@leadLawyerRequired": {
+    "description": "Validation message for required lead lawyer"
+  },
+  "titleRequired": "Title is required",
+  "@titleRequired": {
+    "description": "Validation message for required title"
+  },
+  "descriptionRequired": "Description is required",
+  "@descriptionRequired": {
+    "description": "Validation message for required description"
+  },
+  "assigneeRequired": "Assignee is required",
+  "@assigneeRequired": {
+    "description": "Validation message for required assignee"
+  },
+  "caseNumberRequired": "Case number is required",
+  "@caseNumberRequired": {
+    "description": "Validation message for required case number"
+  },
+  "courtNameRequired": "Court name is required",
+  "@courtNameRequired": {
+    "description": "Validation message for required court name"
+  },
+  "circuitRequired": "Circuit is required",
+  "@circuitRequired": {
+    "description": "Validation message for required circuit"
+  },
+  "identityNumberRequired": "Identity number is required",
+  "@identityNumberRequired": {
+    "description": "Validation message for required identity number"
+  },
+  "locationRequired": "Location is required",
+  "@locationRequired": {
+    "description": "Validation message for required location"
+  },
+  "purposeRequired": "Purpose is required",
+  "@purposeRequired": {
+    "description": "Validation message for required purpose"
+  },
+  "contentRequired": "Content is required",
+  "@contentRequired": {
+    "description": "Validation message for required content"
+  },
+  "caseLabel": "Case",
+  "@caseLabel": {
+    "description": "Case field label"
+  },
+  "contractLabel": "Contract",
+  "@contractLabel": {
+    "description": "Contract field label"
+  },
+  "caseCategoryCivil": "Civil",
+  "@caseCategoryCivil": {
+    "description": "Civil case category"
+  },
+  "caseCategoryCriminal": "Criminal",
+  "@caseCategoryCriminal": {
+    "description": "Criminal case category"
+  },
+  "caseCategoryLabor": "Labor",
+  "@caseCategoryLabor": {
+    "description": "Labor case category"
+  },
+  "caseCategoryIntellectualProperty": "Intellectual Property",
+  "@caseCategoryIntellectualProperty": {
+    "description": "Intellectual Property case category"
+  },
+  "caseCategoryCommercial": "Commercial",
+  "@caseCategoryCommercial": {
+    "description": "Commercial case category"
+  },
+  "caseCategoryAdministrative": "Administrative",
+  "@caseCategoryAdministrative": {
+    "description": "Administrative case category"
+  },
+  "caseStatusProspect": "Prospect",
+  "@caseStatusProspect": {
+    "description": "Prospect case status"
+  },
+  "caseStatusActive": "Active",
+  "@caseStatusActive": {
+    "description": "Active case status"
+  },
+  "caseStatusClosed": "Closed",
+  "@caseStatusClosed": {
+    "description": "Closed case status"
+  },
+  "partyTypeClient": "Client",
+  "@partyTypeClient": {
+    "description": "Client party type"
+  },
+  "partyTypeLawyer": "Lawyer",
+  "@partyTypeLawyer": {
+    "description": "Lawyer party type"
+  },
+  "partyTypeEngineer": "Engineer",
+  "@partyTypeEngineer": {
+    "description": "Engineer party type"
+  },
+  "partyTypeAccountant": "Accountant",
+  "@partyTypeAccountant": {
+    "description": "Accountant party type"
+  },
+  "partyTypeTranslator": "Translator",
+  "@partyTypeTranslator": {
+    "description": "Translator party type"
+  },
+  "sessionTypeCourtHearing": "Court Hearing",
+  "@sessionTypeCourtHearing": {
+    "description": "Court hearing session type"
+  },
+  "sessionTypeClientMeeting": "Client Meeting",
+  "@sessionTypeClientMeeting": {
+    "description": "Client meeting session type"
+  },
+  "sessionTypeConsultation": "Consultation",
+  "@sessionTypeConsultation": {
+    "description": "Consultation session type"
+  },
+  "documentCategoryClientDoc": "Client Document",
+  "@documentCategoryClientDoc": {
+    "description": "Client document category"
+  },
+  "documentCategoryOfficeDoc": "Office Document",
+  "@documentCategoryOfficeDoc": {
+    "description": "Office document category"
+  },
+  "documentCategoryContract": "Contract",
+  "@documentCategoryContract": {
+    "description": "Contract document category"
+  },
+  "documentCategoryReport": "Report",
+  "@documentCategoryReport": {
+    "description": "Report document category"
+  },
+  "documentCategoryOther": "Other",
+  "@documentCategoryOther": {
+    "description": "Other document category"
+  },
+  "relatedTypeCase": "Case",
+  "@relatedTypeCase": {
+    "description": "Case related type"
+  },
+  "relatedTypeClient": "Client",
+  "@relatedTypeClient": {
+    "description": "Client related type"
+  },
+  "relatedTypeContract": "Contract",
+  "@relatedTypeContract": {
+    "description": "Contract related type"
+  },
+  "taskPriorityLow": "Low",
+  "@taskPriorityLow": {
+    "description": "Low task priority"
+  },
+  "taskPriorityMedium": "Medium",
+  "@taskPriorityMedium": {
+    "description": "Medium task priority"
+  },
+  "taskPriorityHigh": "High",
+  "@taskPriorityHigh": {
+    "description": "High task priority"
+  },
+  "paymentMethod": "Payment Method",
+  "@paymentMethod": {
+    "description": "Payment method field label"
+  },
+  "paymentMethodRequired": "Payment method is required",
+  "@paymentMethodRequired": {
+    "description": "Payment method required validation error"
+  },
+  "paymentMethodCash": "Cash",
+  "@paymentMethodCash": {
+    "description": "Cash payment method"
+  },
+  "paymentMethodBankTransfer": "Bank Transfer",
+  "@paymentMethodBankTransfer": {
+    "description": "Bank transfer payment method"
+  },
+  "paymentMethodCheck": "Check",
+  "@paymentMethodCheck": {
+    "description": "Check payment method"
+  },
+  "paymentMethodCreditCard": "Credit Card",
+  "@paymentMethodCreditCard": {
+    "description": "Credit card payment method"
+  },
+  "paymentMethodOnlinePayment": "Online Payment",
+  "@paymentMethodOnlinePayment": {
+    "description": "Online payment method"
+  },
+  "paymentMethodOther": "Other",
+  "@paymentMethodOther": {
+    "description": "Other payment method"
+  },
+  "sendCode": "Send Code",
+  "@sendCode": {
+    "description": "Button to send verification code"
+  },
+  "verifyCode": "Verify Code",
+  "@verifyCode": {
+    "description": "Button to verify code"
+  },
+  "verified": "Verified",
+  "@verified": {
+    "description": "Status when code is verified"
+  },
+  "completeSignUp": "Complete Sign Up",
+  "@completeSignUp": {
+    "description": "Button to complete phone signup"
   }
 }
 
