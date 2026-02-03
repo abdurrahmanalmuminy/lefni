@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/models/contract_model.dart';
+import 'package:lefni/models/document_model.dart' as doc_model;
 import 'package:lefni/services/firestore/contract_service.dart';
 import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/ui/widgets/status_chip.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -277,7 +279,17 @@ class ContractDetailPage extends StatelessWidget {
                                     padding: const EdgeInsets.symmetric(vertical: 4),
                                     child: InkWell(
                                       onTap: () {
-                                        // TODO: Open file
+                                        // Convert contract FileType to document FileType
+                                        doc_model.FileType? docFileType;
+                                        switch (file.type) {
+                                          case FileType.pdf:
+                                            docFileType = doc_model.FileType.pdf;
+                                            break;
+                                          case FileType.word:
+                                            docFileType = doc_model.FileType.word;
+                                            break;
+                                        }
+                                        FileViewer.openFile(context, file.url, docFileType);
                                       },
                                       child: Row(
                                         children: [

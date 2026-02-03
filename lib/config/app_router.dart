@@ -5,12 +5,14 @@ import 'package:lefni/ui/dashboard.dart';
 import 'package:lefni/ui/pages/auth/login_page.dart';
 import 'package:lefni/ui/pages/auth/user_profile_page.dart';
 import 'package:lefni/ui/pages/auth/waiting_activation_page.dart';
+import 'package:lefni/providers/user_session_provider.dart';
 // Home pages
 import 'package:lefni/ui/pages/home/today_summary_page.dart';
 import 'package:lefni/ui/pages/home/contracts_list_page.dart';
 import 'package:lefni/ui/pages/home/cases_list_page.dart';
 import 'package:lefni/ui/pages/home/sessions_list_page.dart';
 import 'package:lefni/ui/pages/home/appointments_list_page.dart';
+import 'package:lefni/ui/pages/home/consultations_list_page.dart';
 import 'package:lefni/ui/pages/home/clients_list_page.dart';
 import 'package:lefni/ui/pages/home/documents_list_page.dart';
 import 'package:lefni/ui/pages/home/tasks_list_page.dart';
@@ -28,6 +30,7 @@ import 'package:lefni/ui/pages/details/client_detail_page.dart';
 import 'package:lefni/ui/pages/details/case_detail_page.dart';
 import 'package:lefni/ui/pages/details/session_detail_page.dart';
 import 'package:lefni/ui/pages/details/appointment_detail_page.dart';
+import 'package:lefni/ui/pages/details/consultation_detail_page.dart';
 import 'package:lefni/ui/pages/details/contract_detail_page.dart';
 import 'package:lefni/ui/pages/details/document_detail_page.dart';
 import 'package:lefni/ui/pages/details/task_detail_page.dart';
@@ -73,26 +76,9 @@ class AppRouter {
 
   static Locale get currentLocale => _currentLocale;
 
-  static final GoRouter router = GoRouter(
-    initialLocation: '/',
-    redirect: (context, state) {
-      final user = FirebaseAuth.instance.currentUser;
-      final isLoggedIn = user != null;
-      final isGoingToLogin = state.uri.path == '/login';
-
-      // If not logged in and not going to login, redirect to login
-      if (!isLoggedIn && !isGoingToLogin) {
-        return '/login';
-      }
-
-      // If logged in and going to login, redirect to home
-      if (isLoggedIn && isGoingToLogin) {
-        return '/';
-      }
-
-      return null; // No redirect needed
-    },
-    routes: [
+  // Helper function to build all routes
+  static List<RouteBase> _buildRoutes() {
+    return [
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
@@ -193,6 +179,17 @@ class AppRouter {
             builder: (context, state) {
               final id = state.pathParameters['id']!;
               return AppointmentEditPage(appointmentId: id);
+            },
+          ),
+          GoRoute(
+            path: '/consultations',
+            builder: (context, state) => const ConsultationsListPage(),
+          ),
+          GoRoute(
+            path: '/consultations/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return ConsultationDetailPage(consultationId: id);
             },
           ),
           GoRoute(
@@ -399,7 +396,57 @@ class AppRouter {
           ),
         ],
       ),
-    ],
+    ];
+  }
+
+  // Create router with refreshListenable to listen to auth state changes
+  static GoRouter createRouter(UserSessionProvider userSessionProvider) {
+    return GoRouter(
+      initialLocation: '/',
+      refreshListenable: userSessionProvider,
+      redirect: (context, state) {
+        final user = FirebaseAuth.instance.currentUser;
+        final isLoggedIn = user != null;
+        final isGoingToLogin = state.uri.path == '/login';
+
+        // If not logged in and not going to login, redirect to login
+        if (!isLoggedIn && !isGoingToLogin) {
+          return '/login';
+        }
+
+        // If logged in and going to login, redirect to home
+        if (isLoggedIn && isGoingToLogin) {
+          return '/';
+        }
+
+        return null; // No redirect needed
+      },
+      routes: _buildRoutes(),
+    );
+  }
+
+  // Static router for backward compatibility (won't refresh on auth changes)
+  // Use createRouter() in main.dart for proper auth state listening
+  static final GoRouter router = GoRouter(
+    initialLocation: '/',
+    redirect: (context, state) {
+      final user = FirebaseAuth.instance.currentUser;
+      final isLoggedIn = user != null;
+      final isGoingToLogin = state.uri.path == '/login';
+
+      // If not logged in and not going to login, redirect to login
+      if (!isLoggedIn && !isGoingToLogin) {
+        return '/login';
+      }
+
+      // If logged in and going to login, redirect to home
+      if (isLoggedIn && isGoingToLogin) {
+        return '/';
+      }
+
+      return null; // No redirect needed
+    },
+    routes: _buildRoutes(),
   );
 }
 

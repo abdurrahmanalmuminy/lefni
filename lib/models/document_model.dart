@@ -27,18 +27,20 @@ class DocumentModel {
   });
 
   factory DocumentModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return DocumentModel(
       id: doc.id,
-      fileName: data['fileName'] as String,
-      fileUrl: data['fileUrl'] as String,
-      fileType: FileType.fromString(data['fileType'] as String),
-      category: DocumentCategory.fromString(data['category'] as String),
+      fileName: (data['fileName'] as String?) ?? '',
+      fileUrl: (data['fileUrl'] as String?) ?? '',
+      fileType: FileType.fromString(data['fileType'] as String? ?? 'other'),
+      category: DocumentCategory.fromString(data['category'] as String? ?? 'other'),
       caseId: data['caseId'] as String?,
       clientId: data['clientId'] as String?,
-      uploaderUid: data['uploaderUid'] as String,
-      uploadedAt: (data['uploadedAt'] as Timestamp).toDate(),
-      fileSize: (data['fileSize'] as num).toInt(),
+      uploaderUid: (data['uploaderUid'] as String?) ?? '',
+      uploadedAt: data['uploadedAt'] != null && data['uploadedAt'] is Timestamp
+          ? (data['uploadedAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      fileSize: (data['fileSize'] as num?)?.toInt() ?? 0,
     );
   }
 

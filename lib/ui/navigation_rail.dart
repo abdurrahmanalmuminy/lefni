@@ -85,6 +85,11 @@ class _ResponsiveNavigationRailState extends State<ResponsiveNavigationRail> {
       route: '/appointments',
     ),
     NavigationItem(
+      label: 'الاستشارات',
+      icon: Icons.chat_bubble_outline,
+      route: '/consultations',
+    ),
+    NavigationItem(
       label: 'العملاء',
       icon: UIcons.regularRounded.users,
       route: '/clients',

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uicons/uicons.dart';
-import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/models/case_model.dart';
+import 'package:lefni/services/court_classifications_service.dart';
 import 'package:lefni/ui/widgets/status_chip.dart';
 
 class CaseListTile extends StatelessWidget {
@@ -78,14 +78,42 @@ class CaseListTile extends StatelessWidget {
                   color: colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 4),
-                Text(
-                  case_.category.localized(AppLocalizations.of(context)!),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                FutureBuilder<String>(
+                  future: CourtClassificationsService.getCategoryNameAr(case_.category),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.data ?? case_.category,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
+            if (case_.caseType != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Icon(
+                    Icons.gavel,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      case_.caseType!['ar'] as String? ?? '',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
         trailing: Icon(

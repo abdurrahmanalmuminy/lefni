@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/services/auth/auth_service.dart';
 import 'package:lefni/models/user_model.dart';
@@ -128,12 +129,17 @@ class _LoginPageState extends State<LoginPage> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      // Navigation will be handled by AuthGate
+      // Navigate to dashboard after successful login
+      if (mounted) {
+        context.go('/');
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -203,7 +209,10 @@ class _LoginPageState extends State<LoginPage> {
           otpCode,
           isSignUp: false,
         );
-        // Navigation will be handled by AuthGate
+        // Navigate to dashboard after successful login
+        if (mounted) {
+          context.go('/');
+        }
       }
     } catch (e) {
       setState(() {
@@ -237,12 +246,17 @@ class _LoginPageState extends State<LoginPage> {
         region: _selectedRegion!,
         city: _selectedCity!,
       );
-      // Navigation will be handled by AuthGate
+      // Navigate to dashboard after successful signup
+      if (mounted) {
+        context.go('/');
+      }
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -467,15 +481,9 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.green,
           ),
         );
+        // Navigate to dashboard after successful signup
+        context.go('/');
       }
-      // Reset loading state - AuthGate will handle navigation automatically
-      // when it detects the authenticated state change
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-      // Navigation will be handled by AuthGate when it detects authenticated state
     } catch (e) {
       if (mounted) {
         setState(() {

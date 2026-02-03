@@ -91,7 +91,9 @@ class _ContractsListPageState extends State<ContractsListPage> {
             child: StreamBuilder(
               stream: _filter == 'archived'
                   ? ContractService().getArchivedContracts()
-                  : ContractService().getContractsByClient('all'), // TODO: Implement proper filtering
+                  : _filter == 'pending'
+                      ? ContractService().getContractsBySignatureStatus('pending')
+                      : ContractService().getAllContracts(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

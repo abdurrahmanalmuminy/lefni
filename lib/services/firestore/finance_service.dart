@@ -55,13 +55,14 @@ class FinanceService {
     }
   }
 
-  // Get finances by client
-  Stream<List<FinanceModel>> getFinancesByClient(String clientId) {
+  // Get finances by client (paginated)
+  Stream<List<FinanceModel>> getFinancesByClient(String clientId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('clientId', isEqualTo: clientId)
         .where('status', isEqualTo: FinanceStatus.unpaid.value)
         .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => FinanceModel.fromFirestore(doc))
@@ -93,12 +94,13 @@ class FinanceService {
             .toList());
   }
 
-  // Get finances by status
-  Stream<List<FinanceModel>> getFinancesByStatus(FinanceStatus status) {
+  // Get finances by status (paginated)
+  Stream<List<FinanceModel>> getFinancesByStatus(FinanceStatus status, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: status.value)
         .orderBy('dueDate', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => FinanceModel.fromFirestore(doc))

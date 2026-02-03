@@ -24,20 +24,23 @@ class UserModel {
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return UserModel(
       uid: doc.id,
-      email: data['email'] as String,
+      email: (data['email'] as String?) ?? '',
       phoneNumber: data['phoneNumber'] as String?,
-      role: UserRole.fromString(data['role'] as String),
-      profile: UserProfile.fromMap(data['profile'] as Map<String, dynamic>),
+      role: UserRole.fromString(data['role'] as String? ?? 'client'),
+      profile: UserProfile.fromMap(data['profile'] as Map<String, dynamic>? ?? {}),
       permissions: (data['permissions'] as List<dynamic>?)
               ?.map((e) => e as String)
+              .whereType<String>()
               .toList() ??
           [],
       isActive: data['isActive'] as bool? ?? true,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      lastLogin: data['lastLogin'] != null
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      lastLogin: data['lastLogin'] != null && data['lastLogin'] is Timestamp
           ? (data['lastLogin'] as Timestamp).toDate()
           : null,
     );
@@ -185,14 +188,14 @@ class UserProfile {
       licenseNumber: map['licenseNumber'] as String?,
       firmName: map['firmName'] as String?,
       university: map['university'] as String?,
-      cooperationType: map['cooperationType'] != null
+      cooperationType: map['cooperationType'] != null && map['cooperationType'] is String
           ? CooperationType.fromString(map['cooperationType'] as String)
           : null,
       bankAccount: map['bankAccount'] as String?,
-      licenseType: map['licenseType'] != null
+      licenseType: map['licenseType'] != null && map['licenseType'] is String
           ? LicenseType.fromString(map['licenseType'] as String)
           : null,
-      licenseExpiryDate: map['licenseExpiryDate'] != null
+      licenseExpiryDate: map['licenseExpiryDate'] != null && map['licenseExpiryDate'] is Timestamp
           ? (map['licenseExpiryDate'] as Timestamp).toDate()
           : null,
       experience: map['experience'] as String?,

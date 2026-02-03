@@ -67,49 +67,53 @@ class SessionService {
             .toList());
   }
 
-  // Get sessions by lawyer
-  Stream<List<SessionModel>> getSessionsByLawyer(String lawyerId) {
+  // Get sessions by lawyer (paginated)
+  Stream<List<SessionModel>> getSessionsByLawyer(String lawyerId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('lawyerId', isEqualTo: lawyerId)
         .orderBy('scheduledAt', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => SessionModel.fromFirestore(doc))
             .toList());
   }
 
-  // Get sessions by client
-  Stream<List<SessionModel>> getSessionsByClient(String clientId) {
+  // Get sessions by client (paginated)
+  Stream<List<SessionModel>> getSessionsByClient(String clientId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('clientId', isEqualTo: clientId)
         .orderBy('scheduledAt', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => SessionModel.fromFirestore(doc))
             .toList());
   }
 
-  // Get all sessions
-  Stream<List<SessionModel>> getAllSessions() {
+  // Get all sessions (paginated)
+  Stream<List<SessionModel>> getAllSessions({int limit = 20}) {
     return _firestore
         .collection(_collection)
         .orderBy('scheduledAt', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => SessionModel.fromFirestore(doc))
             .toList());
   }
 
-  // Get upcoming sessions (for calendar)
-  Stream<List<SessionModel>> getUpcomingSessions({DateTime? startDate}) {
+  // Get upcoming sessions (for calendar, paginated)
+  Stream<List<SessionModel>> getUpcomingSessions({DateTime? startDate, int limit = 20}) {
     final start = startDate ?? DateTime.now();
     return _firestore
         .collection(_collection)
         .where('scheduledAt', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
         .where('status', isEqualTo: SessionStatus.scheduled.value)
         .orderBy('scheduledAt', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => SessionModel.fromFirestore(doc))

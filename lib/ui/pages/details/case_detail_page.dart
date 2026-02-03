@@ -5,6 +5,7 @@ import 'package:lefni/models/case_model.dart';
 import 'package:lefni/services/firestore/case_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/services/firestore/client_service.dart';
+import 'package:lefni/services/court_classifications_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/ui/widgets/status_chip.dart';
 import 'package:uicons/uicons.dart';
@@ -78,22 +79,27 @@ class CaseDetailPage extends StatelessWidget {
           return CustomScrollView(
             slivers: [
               SliverToBoxAdapter(
-                child: EntityHeader(
-                  title: case_.caseNumber,
-                  subtitle: case_.category.localized(AppLocalizations.of(context)!),
-                  leading: CircleAvatar(
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.description,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  actions: [
-                    StatusChip(
-                      status: case_.status,
-                      type: StatusType.caseStatus,
-                    ),
-                  ],
+                child: FutureBuilder<String>(
+                  future: CourtClassificationsService.getCategoryNameAr(case_.category),
+                  builder: (context, snapshot) {
+                    return EntityHeader(
+                      title: case_.caseNumber,
+                      subtitle: snapshot.data ?? case_.category,
+                      leading: CircleAvatar(
+                        backgroundColor: colorScheme.primaryContainer,
+                        child: Icon(
+                          Icons.description,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                      actions: [
+                        StatusChip(
+                          status: case_.status,
+                          type: StatusType.caseStatus,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
               SliverPadding(
@@ -119,11 +125,36 @@ class CaseDetailPage extends StatelessWidget {
                               'رقم القضية',
                               case_.caseNumber,
                             ),
-                            _buildInfoRow(
-                              context,
-                              'الفئة',
-                              case_.category.localized(AppLocalizations.of(context)!),
+                            FutureBuilder<String>(
+                              future: CourtClassificationsService.getCategoryNameAr(case_.category),
+                              builder: (context, snapshot) {
+                                return _buildInfoRow(
+                                  context,
+                                  'التصنيف الرئيسي',
+                                  snapshot.data ?? case_.category,
+                                );
+                              },
                             ),
+                            if (case_.subCategory != null)
+                              FutureBuilder<String>(
+                                future: CourtClassificationsService.getSubCategoryNameAr(
+                                  case_.category,
+                                  case_.subCategory!,
+                                ),
+                                builder: (context, snapshot) {
+                                  return _buildInfoRow(
+                                    context,
+                                    'التصنيف الفرعي',
+                                    snapshot.data ?? case_.subCategory ?? '',
+                                  );
+                                },
+                              ),
+                            if (case_.caseType != null)
+                              _buildInfoRow(
+                                context,
+                                'نوع القضية',
+                                case_.caseType!['ar'] as String? ?? '',
+                              ),
                             _buildInfoRow(
                               context,
                               'الحالة',

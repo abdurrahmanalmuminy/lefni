@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/services/firestore/task_service.dart';
 import 'package:lefni/models/task_model.dart';
@@ -6,6 +7,7 @@ import 'package:lefni/ui/widgets/search_app_bar.dart';
 import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/list_tiles/task_list_tile.dart';
 import 'package:lefni/ui/widgets/forms/create_task_form.dart';
+import 'package:lefni/providers/user_session_provider.dart';
 import 'package:uicons/uicons.dart';
 
 class TasksListPage extends StatefulWidget {
@@ -89,9 +91,15 @@ class _TasksListPageState extends State<TasksListPage> {
             ),
           ),
           Expanded(
-            child: StreamBuilder(
-              stream: TaskService().getTasksByAssigned('current-user-id'), // TODO: Get from auth
-              builder: (context, snapshot) {
+            child: Consumer<UserSessionProvider>(
+              builder: (context, userSession, _) {
+                final userId = userSession.firebaseUser?.uid;
+                if (userId == null) {
+                  return const Center(child: Text('يرجى تسجيل الدخول'));
+                }
+                return StreamBuilder(
+                  stream: TaskService().getTasksByAssigned(userId),
+                  builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -128,6 +136,8 @@ class _TasksListPageState extends State<TasksListPage> {
                     return TaskListTile(task: tasks[index]);
                   },
                 );
+              },
+            );
               },
             ),
           ),

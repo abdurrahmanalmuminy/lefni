@@ -6,6 +6,7 @@ import 'package:lefni/models/user_model.dart';
 import 'package:lefni/services/firestore/case_service.dart';
 import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
+import 'package:lefni/services/court_classifications_service.dart';
 import 'package:lefni/ui/widgets/form_dialog.dart';
 
 class CreateCaseForm extends StatefulWidget {
@@ -29,25 +30,97 @@ class _CreateCaseFormState extends State<CreateCaseForm> {
   
   String? _selectedClientId;
   String? _selectedLeadLawyerId;
-  CaseCategory _selectedCategory = CaseCategory.civil;
+  // Classification fields from JSON
+  List<Map<String, String>> _mainCategories = [];
+  List<Map<String, String>> _subCategories = [];
+  List<Map<String, dynamic>> _caseTypes = [];
+  String? _selectedMainCategory;
+  String? _selectedSubCategory;
+  Map<String, dynamic>? _selectedCaseType;
   CaseStatus _selectedStatus = CaseStatus.prospect;
   List<String> _selectedCollaborators = [];
   bool _isLoading = false;
+  bool _isLoadingCategories = true;
 
   @override
   void initState() {
     super.initState();
+    _loadCategories();
     if (widget.model != null) {
       final case_ = widget.model!;
       _caseNumberController.text = case_.caseNumber;
       _selectedClientId = case_.clientId;
       _selectedLeadLawyerId = case_.leadLawyerId;
-      _selectedCategory = case_.category;
+      _selectedMainCategory = case_.category;
+      _selectedSubCategory = case_.subCategory;
+      _selectedCaseType = case_.caseType;
       _selectedStatus = case_.status;
       _courtNameController.text = case_.courtDetails.courtName;
       _circuitController.text = case_.courtDetails.circuit;
       _judgeController.text = case_.courtDetails.judge ?? '';
       _selectedCollaborators = case_.collaborators.map((c) => c.userId).toList();
+    }
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await CourtClassificationsService.getMainCategories();
+      setState(() {
+        _mainCategories = categories;
+        _isLoadingCategories = false;
+      });
+      
+      // If editing, load sub-categories and case types
+      if (widget.model != null && _selectedMainCategory != null) {
+        await _loadSubCategories(_selectedMainCategory!);
+        if (_selectedSubCategory != null) {
+          await _loadCaseTypes(_selectedMainCategory!, _selectedSubCategory!);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل تحميل التصنيفات: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      setState(() {
+        _isLoadingCategories = false;
+      });
+    }
+  }
+
+  Future<void> _loadSubCategories(String mainCategory) async {
+    try {
+      final subCategories = await CourtClassificationsService.getSubCategories(mainCategory);
+      setState(() {
+        _subCategories = subCategories;
+        // Reset sub-category and case type when main category changes
+        if (widget.model == null || _selectedMainCategory != widget.model!.category) {
+          _selectedSubCategory = null;
+          _selectedCaseType = null;
+          _caseTypes = [];
+        }
+      });
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  Future<void> _loadCaseTypes(String mainCategory, String subCategory) async {
+    try {
+      final caseTypes = await CourtClassificationsService.getCaseTypes(mainCategory, subCategory);
+      setState(() {
+        _caseTypes = caseTypes;
+        // Reset case type when sub-category changes
+        if (widget.model == null || _selectedSubCategory != widget.model!.subCategory) {
+          _selectedCaseType = null;
+        }
+      });
+    } catch (e) {
+      // Handle error
     }
   }
 
@@ -81,6 +154,20 @@ class _CreateCaseFormState extends State<CreateCaseForm> {
       return;
     }
 
+    if (_selectedMainCategory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى اختيار التصنيف الرئيسي')),
+      );
+      return;
+    }
+
+    if (_selectedCaseType == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى اختيار نوع القضية')),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -94,7 +181,9 @@ class _CreateCaseFormState extends State<CreateCaseForm> {
           caseNumber: _caseNumberController.text.trim(),
           clientId: _selectedClientId!,
           leadLawyerId: _selectedLeadLawyerId!,
-          category: _selectedCategory,
+          category: _selectedMainCategory!,
+          subCategory: _selectedSubCategory,
+          caseType: _selectedCaseType,
           status: _selectedStatus,
           courtDetails: CourtDetails(
             courtName: _courtNameController.text.trim(),
@@ -130,7 +219,9 @@ class _CreateCaseFormState extends State<CreateCaseForm> {
         caseNumber: _caseNumberController.text.trim(),
         clientId: _selectedClientId!,
         leadLawyerId: _selectedLeadLawyerId!,
-        category: _selectedCategory,
+        category: _selectedMainCategory!,
+        subCategory: _selectedSubCategory,
+        caseType: _selectedCaseType,
         status: _selectedStatus,
         courtDetails: CourtDetails(
           courtName: _courtNameController.text.trim(),
@@ -276,28 +367,98 @@ class _CreateCaseFormState extends State<CreateCaseForm> {
                 },
               ),
               const SizedBox(height: 16),
-              // Category
-              DropdownButtonFormField<CaseCategory>(
-                value: _selectedCategory,
-                decoration: FormFieldStyle.styled(
-                  labelText: localizations.caseType,
-                  prefixIcon: Icons.category_outlined,
-                ),
-                items: CaseCategory.values.map((category) {
-                  return DropdownMenuItem<CaseCategory>(
-                    value: category,
-                    child: Text(category.localized(localizations)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
+              // Main Category Dropdown
+              _isLoadingCategories
+                  ? const Center(child: CircularProgressIndicator())
+                  : DropdownButtonFormField<String>(
+                      value: _selectedMainCategory,
+                      decoration: FormFieldStyle.styled(
+                        labelText: 'التصنيف الرئيسي',
+                        prefixIcon: Icons.category_outlined,
+                      ),
+                      items: _mainCategories.map((category) {
+                        return DropdownMenuItem<String>(
+                          value: category['key'] ?? '',
+                          child: Text(category['ar'] ?? category['key'] ?? ''),
+                        );
+                      }).toList(),
+                      onChanged: (value) async {
+                        setState(() {
+                          _selectedMainCategory = value;
+                          _selectedSubCategory = null;
+                          _selectedCaseType = null;
+                          _subCategories = [];
+                          _caseTypes = [];
+                        });
+                        if (value != null) {
+                          await _loadSubCategories(value);
+                        }
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'يرجى اختيار التصنيف الرئيسي';
+                        }
+                        return null;
+                      },
+                    ),
+              if (!_isLoadingCategories) const SizedBox(height: 16),
+              
+              // Sub-Category Dropdown (only if main category selected)
+              if (_selectedMainCategory != null && _subCategories.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  value: _selectedSubCategory,
+                  decoration: FormFieldStyle.styled(
+                    labelText: 'التصنيف الفرعي',
+                    prefixIcon: Icons.subdirectory_arrow_right,
+                  ),
+                  items: _subCategories.map((subCategory) {
+                    return DropdownMenuItem<String>(
+                      value: subCategory['key'] ?? '',
+                      child: Text(subCategory['ar'] ?? subCategory['key'] ?? ''),
+                    );
+                  }).toList(),
+                  onChanged: (value) async {
                     setState(() {
-                      _selectedCategory = value;
+                      _selectedSubCategory = value;
+                      _selectedCaseType = null;
+                      _caseTypes = [];
                     });
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
+                    if (value != null && _selectedMainCategory != null) {
+                      await _loadCaseTypes(_selectedMainCategory!, value);
+                    }
+                  },
+                ),
+              if (_selectedMainCategory != null && _subCategories.isNotEmpty)
+                const SizedBox(height: 16),
+              
+              // Case Type Dropdown (only if sub-category selected)
+              if (_selectedSubCategory != null && _caseTypes.isNotEmpty)
+                DropdownButtonFormField<Map<String, dynamic>>(
+                  value: _selectedCaseType,
+                  decoration: FormFieldStyle.styled(
+                    labelText: 'نوع القضية',
+                    prefixIcon: Icons.gavel,
+                  ),
+                  items: _caseTypes.map((caseType) {
+                    return DropdownMenuItem<Map<String, dynamic>>(
+                      value: caseType,
+                      child: Text(caseType['ar'] as String? ?? ''),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCaseType = value;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null) {
+                      return 'يرجى اختيار نوع القضية';
+                    }
+                    return null;
+                  },
+                ),
+              if (_selectedSubCategory != null && _caseTypes.isNotEmpty)
+                const SizedBox(height: 16),
               // Status
               DropdownButtonFormField<CaseStatus>(
                 value: _selectedStatus,

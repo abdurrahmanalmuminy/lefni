@@ -47,21 +47,23 @@ class AppointmentService {
     }
   }
 
-  Stream<List<AppointmentModel>> getAllAppointments() {
+  Stream<List<AppointmentModel>> getAllAppointments({int limit = 20}) {
     return _firestore
         .collection(_collection)
         .orderBy('dateTime', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => AppointmentModel.fromFirestore(doc))
             .toList());
   }
 
-  Stream<List<AppointmentModel>> getAppointmentsByClient(String clientId) {
+  Stream<List<AppointmentModel>> getAppointmentsByClient(String clientId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('clientId', isEqualTo: clientId)
         .orderBy('dateTime', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => AppointmentModel.fromFirestore(doc))

@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lefni/models/case_model.dart';
+import 'package:lefni/services/firestore/audit_log_service.dart';
+import 'package:lefni/models/audit_log_model.dart';
+import 'package:lefni/utils/logger.dart';
 
 class CaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -22,16 +25,43 @@ class CaseService {
     }
   }
 
-  // Get case by ID
+  // Get case by ID (optimized - only fetch required fields)
   Future<CaseModel?> getCase(String caseId) async {
     try {
-      final doc = await _firestore.collection(_collection).doc(caseId).get();
+      final doc = await _firestore
+          .collection(_collection)
+          .doc(caseId)
+          .get();
       if (doc.exists) {
         return CaseModel.fromFirestore(doc);
       }
       return null;
     } catch (e) {
       throw Exception('Failed to get case: $e');
+    }
+  }
+
+  // Get case summary (only essential fields for list views)
+  Future<Map<String, dynamic>?> getCaseSummary(String caseId) async {
+    try {
+      final doc = await _firestore
+          .collection(_collection)
+          .doc(caseId)
+          .get();
+      if (doc.exists) {
+        final data = doc.data()!;
+        return {
+          'id': doc.id,
+          'caseNumber': data['caseNumber'],
+          'clientId': data['clientId'],
+          'status': data['status'],
+          'category': data['category'],
+          'createdAt': data['createdAt'],
+        };
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to get case summary: $e');
     }
   }
 
@@ -79,22 +109,59 @@ class CaseService {
             snapshot.docs.map((doc) => CaseModel.fromFirestore(doc)).toList());
   }
 
-  // Get cases by status
-  Stream<List<CaseModel>> getCasesByStatus(CaseStatus status) {
+  // Get cases by status (paginated)
+  Stream<List<CaseModel>> getCasesByStatus(CaseStatus status, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: status.value)
         .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => CaseModel.fromFirestore(doc)).toList());
   }
 
-  // Get cases by category
-  Stream<List<CaseModel>> getCasesByCategory(CaseCategory category) {
+  // Get all cases (paginated, no status filter)
+  Stream<List<CaseModel>> getAllCases({int limit = 20}) {
     return _firestore
         .collection(_collection)
-        .where('category', isEqualTo: category.value)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => CaseModel.fromFirestore(doc)).toList());
+  }
+
+  // Get cases by status with pagination support
+  Future<List<CaseModel>> getCasesByStatusPaginated(
+    CaseStatus status, {
+    int limit = 20,
+    DocumentSnapshot? startAfter,
+  }) async {
+    try {
+      Query query = _firestore
+          .collection(_collection)
+          .where('status', isEqualTo: status.value)
+          .orderBy('createdAt', descending: true);
+      
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      
+      final snapshot = await query.limit(limit).get();
+      return snapshot.docs
+          .map((doc) => CaseModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get paginated cases: $e');
+    }
+  }
+
+  // Get cases by category (now using string category from JSON)
+  Stream<List<CaseModel>> getCasesByCategory(String category) {
+    return _firestore
+        .collection(_collection)
+        .where('category', isEqualTo: category)
         .where('status', isEqualTo: CaseStatus.active.value)
         .orderBy('createdAt', descending: true)
         .snapshots()

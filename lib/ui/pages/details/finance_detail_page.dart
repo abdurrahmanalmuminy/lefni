@@ -8,6 +8,7 @@ import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/ui/widgets/status_chip.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -443,9 +444,7 @@ class FinanceDetailPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               InkWell(
-                                onTap: () {
-                                  // TODO: Open PDF
-                                },
+                                onTap: () => FileViewer.openPdf(context, finance.pdfUrl!),
                                 child: Row(
                                   children: [
                                     Icon(

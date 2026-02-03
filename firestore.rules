@@ -6,42 +6,54 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    // Get user data with null check
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) ?
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data :
+             null;
+    }
+    
+    // Check if user data exists
+    function hasUserData() {
+      return isAuthenticated() && getUserData() != null;
     }
     
     function isAdmin() {
-      return isAuthenticated() && 
+      return hasUserData() && 
              getUserData().role == 'admin';
     }
     
     function getUserRole() {
-      return getUserData().role;
+      return hasUserData() ? getUserData().role : null;
     }
     
     function hasPermission(permission) {
-      return isAuthenticated() && 
+      return hasUserData() && 
+             'permissions' in getUserData() &&
              permission in getUserData().permissions;
     }
     
     // Check if user has permission for a specific resource (e.g., "case:abc123")
     function hasResourcePermission(collection, resourceId) {
-      return isAuthenticated() && 
+      return hasUserData() && 
+             'permissions' in getUserData() &&
              (collection + ':' + resourceId) in getUserData().permissions;
     }
     
     // Check if user has permission to create resources in a collection (e.g., "create_cases")
     function hasCreatePermission(collection) {
-      return isAuthenticated() && 
+      return hasUserData() && 
+             'permissions' in getUserData() &&
              ('create_' + collection) in getUserData().permissions;
     }
     
     // Check if user is a client
     function isClient() {
-      return isAuthenticated() && getUserRole() == 'client';
+      return hasUserData() && getUserRole() == 'client';
     }
     
     // Check if client can access a resource by clientId
+    // For users with role 'client', their uid is used as clientId in resources
     function isClientOwner(clientId) {
       return isClient() && (
         clientId == request.auth.uid ||
@@ -50,12 +62,25 @@ service cloud.firestore {
       );
     }
     
+    // Check if client can access a resource where clientId field matches their uid
+    // Only checks if clientId field exists in the resource
+    function canClientAccessResource(resource) {
+      return isClient() && 
+             'clientId' in resource.data && (
+               resource.data.clientId == request.auth.uid ||
+               isClientOwner(resource.data.clientId)
+             );
+    }
+    
     // Users collection
     match /users/{userId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       // Allow users to create their own document with required fields
-      allow create: if isAuthenticated() && request.auth.uid == userId && 
+      allow create: if isAuthenticated() && 
+                       request.auth.uid == userId && 
+                       request.resource.data.keys().hasAll(['email', 'role', 'profile', 'permissions', 'isActive', 'createdAt']) &&
                        request.resource.data.email is string &&
+                       request.resource.data.email.size() > 0 &&
                        request.resource.data.role is string &&
                        request.resource.data.profile is map &&
                        request.resource.data.permissions is list &&
@@ -75,18 +100,28 @@ service cloud.firestore {
         hasResourcePermission('client', clientId) ||
         (isClient() && (
           request.auth.uid == clientId ||
-          resource.data.userId == request.auth.uid
+          ('userId' in resource.data && resource.data.userId == request.auth.uid)
         ))
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('client') ||
-        (isClient() && request.resource.data.userId == request.auth.uid)
+        (isAdmin() && 
+         request.resource.data.keys().hasAll(['type', 'identityNumber', 'name', 'contact', 'stats', 'createdAt']) &&
+         request.resource.data.type is string &&
+         request.resource.data.identityNumber is string &&
+         request.resource.data.name is string &&
+         request.resource.data.contact is map &&
+         request.resource.data.stats is map &&
+         request.resource.data.createdAt is timestamp) ||
+        (hasCreatePermission('client') &&
+         request.resource.data.keys().hasAll(['type', 'identityNumber', 'name', 'contact', 'stats', 'createdAt'])) ||
+        (isClient() && 
+         request.resource.data.userId == request.auth.uid &&
+         request.resource.data.keys().hasAll(['type', 'identityNumber', 'name', 'contact', 'stats', 'createdAt']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('client', clientId) ||
-        (isClient() && resource.data.userId == request.auth.uid)
+        (isClient() && 'userId' in resource.data && resource.data.userId == request.auth.uid)
       );
       allow delete: if isAdmin();
     }
@@ -95,20 +130,34 @@ service cloud.firestore {
     match /cases/{caseId} {
       allow read: if isAuthenticated() && (
         isAdmin() ||
-        resource.data.clientId == request.auth.uid ||
-        isClientOwner(resource.data.clientId) ||
-        resource.data.leadLawyerId == request.auth.uid ||
-        request.auth.uid in resource.data.collaborators ||
+        canClientAccessResource(resource) ||
+        ('leadLawyerId' in resource.data && resource.data.leadLawyerId == request.auth.uid) ||
+        ('collaborators' in resource.data && request.auth.uid in resource.data.collaborators) ||
         hasResourcePermission('case', caseId)
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('case')
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['caseNumber', 'clientId', 'leadLawyerId', 'category', 'status', 'courtDetails', 'collaborators', 'createdAt', 'updatedAt']) &&
+         request.resource.data.caseNumber is string &&
+         request.resource.data.clientId is string &&
+         request.resource.data.leadLawyerId is string &&
+         request.resource.data.category is string &&
+         request.resource.data.status is string &&
+         request.resource.data.courtDetails is map &&
+         request.resource.data.collaborators is list &&
+         request.resource.data.createdAt is timestamp &&
+         request.resource.data.updatedAt is timestamp &&
+         (!('subCategory' in request.resource.data) || request.resource.data.subCategory is string) &&
+         (!('caseType' in request.resource.data) || request.resource.data.caseType is map)) ||
+        (hasCreatePermission('case') &&
+         request.resource.data.keys().hasAll(['caseNumber', 'clientId', 'leadLawyerId', 'category', 'status', 'courtDetails', 'collaborators', 'createdAt', 'updatedAt']) &&
+         (!('subCategory' in request.resource.data) || request.resource.data.subCategory is string) &&
+         (!('caseType' in request.resource.data) || request.resource.data.caseType is map))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
-        resource.data.leadLawyerId == request.auth.uid ||
-        request.auth.uid in resource.data.collaborators ||
+        ('leadLawyerId' in resource.data && resource.data.leadLawyerId == request.auth.uid) ||
+        ('collaborators' in resource.data && request.auth.uid in resource.data.collaborators) ||
         hasResourcePermission('case', caseId)
       );
       allow delete: if isAdmin();
@@ -118,19 +167,29 @@ service cloud.firestore {
     match /contracts/{contractId} {
       allow read: if isAuthenticated() && (
         isAdmin() ||
-        resource.data.clientId == request.auth.uid ||
-        isClientOwner(resource.data.clientId) ||
+        canClientAccessResource(resource) ||
         hasResourcePermission('contract', contractId)
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('contract')
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['clientId', 'partyType', 'title', 'content', 'files', 'signatureStatus', 'metadata', 'createdAt', 'updatedAt']) &&
+         request.resource.data.clientId is string &&
+         request.resource.data.partyType is string &&
+         request.resource.data.title is string &&
+         request.resource.data.content is string &&
+         request.resource.data.files is list &&
+         request.resource.data.signatureStatus is map &&
+         request.resource.data.metadata is map &&
+         request.resource.data.createdAt is timestamp &&
+         request.resource.data.updatedAt is timestamp) ||
+        (hasCreatePermission('contract') &&
+         request.resource.data.keys().hasAll(['clientId', 'partyType', 'title', 'content', 'files', 'signatureStatus', 'metadata', 'createdAt', 'updatedAt']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('contract', contractId) ||
-        (resource.data.clientId == request.auth.uid || isClientOwner(resource.data.clientId)) && 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['signatureStatus'])
+        (canClientAccessResource(resource) && 
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['signatureStatus']))
       );
       allow delete: if isAdmin();
       
@@ -148,14 +207,24 @@ service cloud.firestore {
     match /sessions/{sessionId} {
       allow read: if isAuthenticated() && (
         isAdmin() ||
-        resource.data.lawyerId == request.auth.uid ||
-        resource.data.clientId == request.auth.uid ||
-        isClientOwner(resource.data.clientId) ||
+        ('lawyerId' in resource.data && resource.data.lawyerId == request.auth.uid) ||
+        canClientAccessResource(resource) ||
         hasResourcePermission('session', sessionId)
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('session')
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['caseId', 'clientId', 'lawyerId', 'scheduledAt', 'type', 'location', 'remindersSent', 'status', 'createdAt']) &&
+         request.resource.data.caseId is string &&
+         request.resource.data.clientId is string &&
+         request.resource.data.lawyerId is string &&
+         request.resource.data.scheduledAt is timestamp &&
+         request.resource.data.type is string &&
+         request.resource.data.location is string &&
+         request.resource.data.remindersSent is map &&
+         request.resource.data.status is string &&
+         request.resource.data.createdAt is timestamp) ||
+        (hasCreatePermission('session') &&
+         request.resource.data.keys().hasAll(['caseId', 'clientId', 'lawyerId', 'scheduledAt', 'type', 'location', 'remindersSent', 'status', 'createdAt']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
@@ -166,21 +235,41 @@ service cloud.firestore {
     }
     
     // Tasks collection
+    // Tasks can be related to cases, clients, or contracts
+    // For client-related tasks, check if relatedType is 'client' and relatedId matches user uid
     match /tasks/{taskId} {
       allow read: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('task', taskId) ||
-        resource.data.assignedTo == request.auth.uid ||
-        resource.data.createdBy == request.auth.uid
+        ('assignedTo' in resource.data && resource.data.assignedTo == request.auth.uid) ||
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid) ||
+        (isClient() && 
+         'relatedType' in resource.data && 
+         'relatedId' in resource.data &&
+         resource.data.relatedType == 'client' && 
+         resource.data.relatedId == request.auth.uid)
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('task')
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['title', 'description', 'assignedTo', 'relatedId', 'relatedType', 'deadlines', 'status', 'priority', 'tags', 'createdAt', 'createdBy']) &&
+         request.resource.data.title is string &&
+         request.resource.data.description is string &&
+         request.resource.data.assignedTo is string &&
+         request.resource.data.relatedId is string &&
+         request.resource.data.relatedType is string &&
+         request.resource.data.deadlines is map &&
+         request.resource.data.status is string &&
+         request.resource.data.priority is string &&
+         request.resource.data.tags is list &&
+         request.resource.data.createdAt is timestamp &&
+         request.resource.data.createdBy is string) ||
+        (hasCreatePermission('task') &&
+         request.resource.data.keys().hasAll(['title', 'description', 'assignedTo', 'relatedId', 'relatedType', 'deadlines', 'status', 'priority', 'tags', 'createdAt', 'createdBy']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('task', taskId) ||
-        resource.data.assignedTo == request.auth.uid
+        ('assignedTo' in resource.data && resource.data.assignedTo == request.auth.uid)
       );
       allow delete: if isAdmin();
     }
@@ -189,14 +278,25 @@ service cloud.firestore {
     match /finances/{financeId} {
       allow read: if isAuthenticated() && (
         isAdmin() ||
-        resource.data.clientId == request.auth.uid ||
-        isClientOwner(resource.data.clientId) ||
+        canClientAccessResource(resource) ||
         hasResourcePermission('finance', financeId) ||
         hasPermission('view_finances')
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('finance')
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['type', 'clientId', 'items', 'subtotal', 'vat', 'total', 'currency', 'status', 'createdAt', 'createdBy']) &&
+         request.resource.data.type is string &&
+         request.resource.data.clientId is string &&
+         request.resource.data.items is list &&
+         request.resource.data.subtotal is number &&
+         request.resource.data.vat is number &&
+         request.resource.data.total is number &&
+         request.resource.data.currency is string &&
+         request.resource.data.status is string &&
+         request.resource.data.createdAt is timestamp &&
+         request.resource.data.createdBy is string) ||
+        (hasCreatePermission('finance') &&
+         request.resource.data.keys().hasAll(['type', 'clientId', 'items', 'subtotal', 'vat', 'total', 'currency', 'status', 'createdAt', 'createdBy']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
@@ -211,26 +311,33 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('document', documentId) ||
-        resource.data.uploaderUid == request.auth.uid ||
-        ('clientId' in resource.data && (
-          resource.data.clientId == request.auth.uid ||
-          isClientOwner(resource.data.clientId)
-        ))
+        ('uploaderUid' in resource.data && resource.data.uploaderUid == request.auth.uid) ||
+        ('clientId' in resource.data && canClientAccessResource(resource))
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('document') ||
-        request.resource.data.uploaderUid == request.auth.uid
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['fileName', 'fileUrl', 'fileType', 'category', 'uploaderUid', 'uploadedAt', 'fileSize']) &&
+         request.resource.data.fileName is string &&
+         request.resource.data.fileUrl is string &&
+         request.resource.data.fileType is string &&
+         request.resource.data.category is string &&
+         request.resource.data.uploaderUid is string &&
+         request.resource.data.uploadedAt is timestamp &&
+         request.resource.data.fileSize is number) ||
+        (hasCreatePermission('document') &&
+         request.resource.data.keys().hasAll(['fileName', 'fileUrl', 'fileType', 'category', 'uploaderUid', 'uploadedAt', 'fileSize'])) ||
+        (request.resource.data.uploaderUid == request.auth.uid &&
+         request.resource.data.keys().hasAll(['fileName', 'fileUrl', 'fileType', 'category', 'uploaderUid', 'uploadedAt', 'fileSize']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('document', documentId) ||
-        resource.data.uploaderUid == request.auth.uid
+        ('uploaderUid' in resource.data && resource.data.uploaderUid == request.auth.uid)
       );
       allow delete: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('document', documentId) ||
-        resource.data.uploaderUid == request.auth.uid
+        ('uploaderUid' in resource.data && resource.data.uploaderUid == request.auth.uid)
       );
     }
     
@@ -239,22 +346,31 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('expense', expenseId) ||
-        resource.data.createdBy == request.auth.uid
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('expense') ||
-        request.resource.data.createdBy == request.auth.uid
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['amount', 'description', 'category', 'date', 'createdBy', 'createdAt']) &&
+         request.resource.data.amount is number &&
+         request.resource.data.description is string &&
+         request.resource.data.category is string &&
+         request.resource.data.date is timestamp &&
+         request.resource.data.createdBy is string &&
+         request.resource.data.createdAt is timestamp) ||
+        (hasCreatePermission('expense') &&
+         request.resource.data.keys().hasAll(['amount', 'description', 'category', 'date', 'createdBy', 'createdAt'])) ||
+        (request.resource.data.createdBy == request.auth.uid &&
+         request.resource.data.keys().hasAll(['amount', 'description', 'category', 'date', 'createdBy', 'createdAt']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('expense', expenseId) ||
-        resource.data.createdBy == request.auth.uid
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
       allow delete: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('expense', expenseId) ||
-        resource.data.createdBy == request.auth.uid
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
     }
     
@@ -263,24 +379,33 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('appointment', appointmentId) ||
-        resource.data.clientId == request.auth.uid ||
-        isClientOwner(resource.data.clientId) ||
-        resource.data.createdBy == request.auth.uid
+        canClientAccessResource(resource) ||
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
       allow create: if isAuthenticated() && (
-        isAdmin() ||
-        hasCreatePermission('appointment') ||
-        request.resource.data.createdBy == request.auth.uid
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['clientId', 'dateTime', 'purpose', 'status', 'smsReminderSent', 'createdBy', 'createdAt']) &&
+         request.resource.data.clientId is string &&
+         request.resource.data.dateTime is timestamp &&
+         request.resource.data.purpose is string &&
+         request.resource.data.status is string &&
+         request.resource.data.smsReminderSent is bool &&
+         request.resource.data.createdBy is string &&
+         request.resource.data.createdAt is timestamp) ||
+        (hasCreatePermission('appointment') &&
+         request.resource.data.keys().hasAll(['clientId', 'dateTime', 'purpose', 'status', 'smsReminderSent', 'createdBy', 'createdAt'])) ||
+        (request.resource.data.createdBy == request.auth.uid &&
+         request.resource.data.keys().hasAll(['clientId', 'dateTime', 'purpose', 'status', 'smsReminderSent', 'createdBy', 'createdAt']))
       );
       allow update: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('appointment', appointmentId) ||
-        resource.data.createdBy == request.auth.uid
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
       allow delete: if isAuthenticated() && (
         isAdmin() ||
         hasResourcePermission('appointment', appointmentId) ||
-        resource.data.createdBy == request.auth.uid
+        ('createdBy' in resource.data && resource.data.createdBy == request.auth.uid)
       );
     }
     
@@ -292,23 +417,87 @@ service cloud.firestore {
       // Non-admin read access
       allow read: if isAuthenticated() && (
         hasResourcePermission('collection_record', recordId) ||
-        resource.data.recordedBy == request.auth.uid
+        ('recordedBy' in resource.data && resource.data.recordedBy == request.auth.uid)
       );
       
       // Non-admin create access
       allow create: if isAuthenticated() && (
-        hasCreatePermission('collection_record') ||
-        request.resource.data.recordedBy == request.auth.uid
+        (hasCreatePermission('collection_record') &&
+         request.resource.data.keys().hasAll(['invoiceId', 'amount', 'paymentDate', 'paymentMethod', 'recordedBy', 'recordedAt']) &&
+         request.resource.data.invoiceId is string &&
+         request.resource.data.amount is number &&
+         request.resource.data.paymentDate is timestamp &&
+         request.resource.data.paymentMethod is string &&
+         request.resource.data.recordedBy is string &&
+         request.resource.data.recordedAt is timestamp) ||
+        (request.resource.data.recordedBy == request.auth.uid &&
+         request.resource.data.keys().hasAll(['invoiceId', 'amount', 'paymentDate', 'paymentMethod', 'recordedBy', 'recordedAt']))
       );
       
       // Non-admin update access
       allow update: if isAuthenticated() && (
         hasResourcePermission('collection_record', recordId) ||
-        resource.data.recordedBy == request.auth.uid
+        ('recordedBy' in resource.data && resource.data.recordedBy == request.auth.uid)
       );
       
       // Non-admin delete access
       allow delete: if isAuthenticated() && hasResourcePermission('collection_record', recordId);
+    }
+    
+    // Consultations collection
+    match /consultations/{consultationId} {
+      // Read: Admin (full access), Client (own consultations), Lawyer (assigned consultations)
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (isClient() && resource.data != null && 'clientId' in resource.data && resource.data.clientId == request.auth.uid) ||
+        (getUserRole() == 'lawyer' && resource.data != null && 'assignedLawyerId' in resource.data && resource.data.assignedLawyerId == request.auth.uid)
+      );
+      
+      // Create: Authenticated users (clients create their own), Admin can create any
+      allow create: if isAuthenticated() && (
+        (isAdmin() &&
+         request.resource.data.keys().hasAll(['clientId', 'category', 'description', 'status', 'attachments', 'createdAt', 'updatedAt']) &&
+         request.resource.data.clientId is string &&
+         request.resource.data.category is string &&
+         request.resource.data.description is string &&
+         request.resource.data.status is string &&
+         request.resource.data.attachments is list &&
+         request.resource.data.createdAt is timestamp &&
+         request.resource.data.updatedAt is timestamp &&
+         (!('subCategory' in request.resource.data) || request.resource.data.subCategory is string) &&
+         (!('caseType' in request.resource.data) || request.resource.data.caseType is map)) ||
+        (isClient() &&
+         request.resource.data.clientId == request.auth.uid &&
+         request.resource.data.status == 'pending' &&
+         request.resource.data.keys().hasAll(['clientId', 'category', 'description', 'status', 'attachments', 'createdAt', 'updatedAt']) &&
+         request.resource.data.clientId is string &&
+         request.resource.data.category is string &&
+         request.resource.data.description is string &&
+         request.resource.data.status is string &&
+         request.resource.data.attachments is list &&
+         request.resource.data.createdAt is timestamp &&
+         request.resource.data.updatedAt is timestamp &&
+         (!('subCategory' in request.resource.data) || request.resource.data.subCategory is string) &&
+         (!('caseType' in request.resource.data) || request.resource.data.caseType is map))
+      );
+      
+      // Update: Admin (full access), Client (only own, limited fields), Lawyer (only assigned, can update response and status)
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (isClient() && 
+         resource.data != null &&
+         'clientId' in resource.data && 
+         resource.data.clientId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['description', 'attachments', 'updatedAt'])) ||
+        (getUserRole() == 'lawyer' &&
+         resource.data != null &&
+         'assignedLawyerId' in resource.data &&
+         resource.data.assignedLawyerId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['response', 'responseAt', 'status', 'updatedAt']))
+      );
+      
+      // Delete: Admin only
+      allow delete: if isAdmin();
     }
     
     // System stats collection

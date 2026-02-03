@@ -22,6 +22,7 @@ class _CreateClientFormState extends State<CreateClientForm> {
   final _identityNumberController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final _addressController = TextEditingController();
   final _agencyNumberController = TextEditingController();
   final _clientService = ClientService();
@@ -56,6 +57,7 @@ class _CreateClientFormState extends State<CreateClientForm> {
     _identityNumberController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     _addressController.dispose();
     _agencyNumberController.dispose();
     super.dispose();
@@ -141,26 +143,45 @@ class _CreateClientFormState extends State<CreateClientForm> {
           Navigator.of(context).pop();
         }
       } else {
-        // Create new client
-      final client = ClientModel(
-        id: '',
-        type: _selectedType,
-        identityNumber: _identityNumberController.text.trim(),
-        name: _nameController.text.trim(),
-        contact: ClientContact(
-          phone: _phoneController.text.trim(),
-          email: _emailController.text.trim(),
-          address: _addressController.text.trim(),
-        ),
-        agencyData: null, // Will be set after client creation if needed
-        stats: ClientStats(
-          activeCases: 0,
-          totalInvoiced: 0.0,
-        ),
-        createdAt: DateTime.now(),
-      );
+        // Create new client with user account
+        // Email is required to create a user account
+        final email = _emailController.text.trim();
+        final password = _passwordController.text.trim();
+        
+        if (email.isEmpty) {
+          throw Exception('Email is required to create a client account');
+        }
+        if (password.isEmpty || password.length < 6) {
+          throw Exception('Password is required and must be at least 6 characters');
+        }
 
-      final clientId = await _clientService.createClient(client);
+        final client = ClientModel(
+          id: '', // Will be set to user's uid
+          type: _selectedType,
+          identityNumber: _identityNumberController.text.trim(),
+          name: _nameController.text.trim(),
+          contact: ClientContact(
+            phone: _phoneController.text.trim(),
+            email: email,
+            address: _addressController.text.trim(),
+          ),
+          agencyData: null, // Will be set after client creation if needed
+          stats: ClientStats(
+            activeCases: 0,
+            totalInvoiced: 0.0,
+          ),
+          createdAt: DateTime.now(),
+        );
+
+        // Create client with user account - this creates both Firebase Auth user and client document
+        // The clientId will be the user's uid, ensuring clientId == userId
+        final clientId = await _clientService.createClientWithUser(
+          email: email,
+          password: password,
+          client: client,
+          region: null, // Can be extracted from address or added as separate field
+          city: null, // Can be extracted from address or added as separate field
+        );
       
       // Upload agency file if provided (after client creation to get correct clientId)
       if (_hasAgency && _agencyFile != null && _agencyNumberController.text.isNotEmpty) {
@@ -316,6 +337,30 @@ class _CreateClientFormState extends State<CreateClientForm> {
                 },
               ),
               const SizedBox(height: 16),
+              // Password (only for new clients, required to create user account)
+              if (widget.model == null)
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  decoration: FormFieldStyle.styled(
+                    labelText: 'Password (for user account)',
+                    prefixIcon: Icons.lock_outlined,
+                    hintText: 'Required to create user account. Minimum 6 characters.',
+                  ),
+                  validator: (value) {
+                    if (widget.model == null) {
+                      // Only validate password for new clients
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Password is required to create user account';
+                      }
+                      if (value.length < 6) {
+                        return 'Password must be at least 6 characters';
+                      }
+                    }
+                    return null;
+                  },
+                ),
+              if (widget.model == null) const SizedBox(height: 16),
               // Address
               TextFormField(
                 controller: _addressController,

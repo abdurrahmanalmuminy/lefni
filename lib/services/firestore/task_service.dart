@@ -54,13 +54,14 @@ class TaskService {
     }
   }
 
-  // Get tasks by assigned user
-  Stream<List<TaskModel>> getTasksByAssigned(String userId) {
+  // Get tasks by assigned user (paginated)
+  Stream<List<TaskModel>> getTasksByAssigned(String userId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('assignedTo', isEqualTo: userId)
         .where('status', isEqualTo: TaskStatus.pending.value)
         .orderBy('deadlines.end', descending: false)
+        .limit(limit)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList());

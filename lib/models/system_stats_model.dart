@@ -20,18 +20,17 @@ class SystemStatsModel {
   });
 
   factory SystemStatsModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return SystemStatsModel(
       id: doc.id,
-      clients: ClientsStats.fromMap(data['clients'] as Map<String, dynamic>),
-      cases: CasesStats.fromMap(data['cases'] as Map<String, dynamic>),
-      contracts:
-          ContractsStats.fromMap(data['contracts'] as Map<String, dynamic>),
-      finances:
-          FinancesStats.fromMap(data['finances'] as Map<String, dynamic>),
-      sessions:
-          SessionsStats.fromMap(data['sessions'] as Map<String, dynamic>),
-      lastUpdated: (data['lastUpdated'] as Timestamp).toDate(),
+      clients: ClientsStats.fromMap(data['clients'] as Map<String, dynamic>? ?? {}),
+      cases: CasesStats.fromMap(data['cases'] as Map<String, dynamic>? ?? {}),
+      contracts: ContractsStats.fromMap(data['contracts'] as Map<String, dynamic>? ?? {}),
+      finances: FinancesStats.fromMap(data['finances'] as Map<String, dynamic>? ?? {}),
+      sessions: SessionsStats.fromMap(data['sessions'] as Map<String, dynamic>? ?? {}),
+      lastUpdated: data['lastUpdated'] != null && data['lastUpdated'] is Timestamp
+          ? (data['lastUpdated'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 
@@ -107,10 +106,10 @@ class ClientsStats {
 
   factory ClientsStats.fromMap(Map<String, dynamic> map) {
     return ClientsStats(
-      total: (map['total'] as num).toInt(),
-      active: (map['active'] as num).toInt(),
-      individuals: (map['individuals'] as num).toInt(),
-      businesses: (map['businesses'] as num).toInt(),
+      total: (map['total'] as num?)?.toInt() ?? 0,
+      active: (map['active'] as num?)?.toInt() ?? 0,
+      individuals: (map['individuals'] as num?)?.toInt() ?? 0,
+      businesses: (map['businesses'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -139,10 +138,10 @@ class CasesStats {
 
   factory CasesStats.fromMap(Map<String, dynamic> map) {
     return CasesStats(
-      total: (map['total'] as num).toInt(),
-      active: (map['active'] as num).toInt(),
-      prospects: (map['prospects'] as num).toInt(),
-      closed: (map['closed'] as num).toInt(),
+      total: (map['total'] as num?)?.toInt() ?? 0,
+      active: (map['active'] as num?)?.toInt() ?? 0,
+      prospects: (map['prospects'] as num?)?.toInt() ?? 0,
+      closed: (map['closed'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -171,10 +170,10 @@ class ContractsStats {
 
   factory ContractsStats.fromMap(Map<String, dynamic> map) {
     return ContractsStats(
-      total: (map['total'] as num).toInt(),
-      pending: (map['pending'] as num).toInt(),
-      signed: (map['signed'] as num).toInt(),
-      archived: (map['archived'] as num).toInt(),
+      total: (map['total'] as num?)?.toInt() ?? 0,
+      pending: (map['pending'] as num?)?.toInt() ?? 0,
+      signed: (map['signed'] as num?)?.toInt() ?? 0,
+      archived: (map['archived'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -203,10 +202,10 @@ class FinancesStats {
 
   factory FinancesStats.fromMap(Map<String, dynamic> map) {
     return FinancesStats(
-      totalInvoiced: (map['totalInvoiced'] as num).toDouble(),
-      totalPaid: (map['totalPaid'] as num).toDouble(),
-      totalPending: (map['totalPending'] as num).toDouble(),
-      monthlyRevenue: (map['monthlyRevenue'] as num).toDouble(),
+      totalInvoiced: (map['totalInvoiced'] as num?)?.toDouble() ?? 0.0,
+      totalPaid: (map['totalPaid'] as num?)?.toDouble() ?? 0.0,
+      totalPending: (map['totalPending'] as num?)?.toDouble() ?? 0.0,
+      monthlyRevenue: (map['monthlyRevenue'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -233,9 +232,9 @@ class SessionsStats {
 
   factory SessionsStats.fromMap(Map<String, dynamic> map) {
     return SessionsStats(
-      upcoming: (map['upcoming'] as num).toInt(),
-      today: (map['today'] as num).toInt(),
-      thisWeek: (map['thisWeek'] as num).toInt(),
+      upcoming: (map['upcoming'] as num?)?.toInt() ?? 0,
+      today: (map['today'] as num?)?.toInt() ?? 0,
+      thisWeek: (map['thisWeek'] as num?)?.toInt() ?? 0,
     );
   }
 

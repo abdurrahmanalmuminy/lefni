@@ -1,10 +1,120 @@
 rules_version = '2';
 
-// Craft rules based on data in your Firestore database
-// allow write: if firestore.get(
-//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to get user data from Firestore
+    function getUserData() {
+      return firestore.get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+             getUserData() != null &&
+             getUserData().role == 'admin';
+    }
+    
+    // Helper function to check if user is client
+    function isClient() {
+      return isAuthenticated() && 
+             getUserData() != null &&
+             getUserData().role == 'client';
+    }
+    
+    // Documents collection - general documents
+    match /documents/{documentId} {
+      // Anyone authenticated can read documents
+      allow read: if isAuthenticated();
+      
+      // Only authenticated users can upload
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    // Client-specific documents
+    match /documents/clients/{clientId}/{fileName} {
+      // Read: Admin, or client owner (clientId matches user uid)
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (isClient() && clientId == request.auth.uid)
+      );
+      
+      // Write: Admin, or client uploading to their own folder
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 10 * 1024 * 1024 && (
+        isAdmin() ||
+        (isClient() && clientId == request.auth.uid)
+      );
+    }
+    
+    // Contract documents
+    match /documents/contracts/{contractId}/{fileName} {
+      // Read: Authenticated users (contracts are shared between parties)
+      allow read: if isAuthenticated();
+      
+      // Write: Only admins and users with create_contract permission
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 10 * 1024 * 1024 && (
+        isAdmin() ||
+        ('create_contract' in getUserData().permissions)
+      );
+    }
+    
+    // Report documents
+    match /documents/reports/{fileName} {
+      // Read: Authenticated users
+      allow read: if isAuthenticated();
+      
+      // Write: Only admins
+      allow write: if isAdmin() && 
+                      request.resource.size < 10 * 1024 * 1024;
+    }
+    
+    // Contract files (from contract service)
+    match /contracts/{contractId}/{fileName} {
+      // Read: Authenticated users
+      allow read: if isAuthenticated();
+      
+      // Write: Only admins and users with create_contract permission
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 10 * 1024 * 1024 && (
+        isAdmin() ||
+        ('create_contract' in getUserData().permissions)
+      );
+    }
+    
+    // Agency images
+    match /agencies/{clientId}/{fileName} {
+      // Read: Admin, or client owner
+      allow read: if isAuthenticated() && (
+        isAdmin() ||
+        (isClient() && clientId == request.auth.uid)
+      );
+      
+      // Write: Admin, or client uploading their own agency
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 5 * 1024 * 1024 && ( // 5MB limit for images
+        isAdmin() ||
+        (isClient() && clientId == request.auth.uid)
+      );
+    }
+    
+    // Receipt images
+    match /receipts/{expenseId}/{fileName} {
+      // Read: Authenticated users
+      allow read: if isAuthenticated();
+      
+      // Write: Authenticated users (expense creator)
+      allow write: if isAuthenticated() && 
+                      request.resource.size < 5 * 1024 * 1024; // 5MB limit for images
+    }
+    
+    // Default deny for all other paths
     match /{allPaths=**} {
       allow read, write: if false;
     }

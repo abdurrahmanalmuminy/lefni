@@ -47,10 +47,11 @@ class CollectionRecordService {
     }
   }
 
-  Stream<List<CollectionRecordModel>> getAllRecords() {
+  Stream<List<CollectionRecordModel>> getAllRecords({int limit = 20}) {
     return _firestore
         .collection(_collection)
         .orderBy('paymentDate', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => CollectionRecordModel.fromFirestore(doc))

@@ -35,28 +35,31 @@ class TaskModel {
   });
 
   factory TaskModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return TaskModel(
       id: doc.id,
-      title: data['title'] as String,
-      description: data['description'] as String,
-      assignedTo: data['assignedTo'] as String,
-      relatedId: data['relatedId'] as String,
-      relatedType: RelatedType.fromString(data['relatedType'] as String),
+      title: (data['title'] as String?) ?? '',
+      description: (data['description'] as String?) ?? '',
+      assignedTo: (data['assignedTo'] as String?) ?? '',
+      relatedId: (data['relatedId'] as String?) ?? '',
+      relatedType: RelatedType.fromString(data['relatedType'] as String? ?? 'case'),
       deadlines: TaskDeadlines.fromMap(
-          data['deadlines'] as Map<String, dynamic>),
-      status: TaskStatus.fromString(data['status'] as String),
+          data['deadlines'] as Map<String, dynamic>? ?? {}),
+      status: TaskStatus.fromString(data['status'] as String? ?? 'pending'),
       completionReport: data['completionReport'] as String?,
-      completedAt: data['completedAt'] != null
+      completedAt: data['completedAt'] != null && data['completedAt'] is Timestamp
           ? (data['completedAt'] as Timestamp).toDate()
           : null,
-      priority: TaskPriority.fromString(data['priority'] as String),
+      priority: TaskPriority.fromString(data['priority'] as String? ?? 'medium'),
       tags: (data['tags'] as List<dynamic>?)
               ?.map((e) => e as String)
+              .whereType<String>()
               .toList() ??
           [],
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      createdBy: data['createdBy'] as String,
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      createdBy: (data['createdBy'] as String?) ?? '',
     );
   }
 
@@ -242,8 +245,12 @@ class TaskDeadlines {
 
   factory TaskDeadlines.fromMap(Map<String, dynamic> map) {
     return TaskDeadlines(
-      start: (map['start'] as Timestamp).toDate(),
-      end: (map['end'] as Timestamp).toDate(),
+      start: map['start'] != null && map['start'] is Timestamp
+          ? (map['start'] as Timestamp).toDate()
+          : DateTime.now(),
+      end: map['end'] != null && map['end'] is Timestamp
+          ? (map['end'] as Timestamp).toDate()
+          : DateTime.now().add(const Duration(days: 1)),
     );
   }
 

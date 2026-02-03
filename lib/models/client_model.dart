@@ -24,18 +24,20 @@ class ClientModel {
   });
 
   factory ClientModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return ClientModel(
       id: doc.id,
-      type: ClientType.fromString(data['type'] as String),
-      identityNumber: data['identityNumber'] as String,
-      name: data['name'] as String,
-      contact: ClientContact.fromMap(data['contact'] as Map<String, dynamic>),
-      agencyData: data['agencyData'] != null
+      type: ClientType.fromString(data['type'] as String? ?? 'individual'),
+      identityNumber: (data['identityNumber'] as String?) ?? '',
+      name: (data['name'] as String?) ?? '',
+      contact: ClientContact.fromMap(data['contact'] as Map<String, dynamic>? ?? {}),
+      agencyData: data['agencyData'] != null && data['agencyData'] is Map<String, dynamic>
           ? AgencyData.fromMap(data['agencyData'] as Map<String, dynamic>)
           : null,
-      stats: ClientStats.fromMap(data['stats'] as Map<String, dynamic>),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      stats: ClientStats.fromMap(data['stats'] as Map<String, dynamic>? ?? {}),
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
       userId: data['userId'] as String?,
     );
   }
@@ -136,9 +138,9 @@ class ClientContact {
 
   factory ClientContact.fromMap(Map<String, dynamic> map) {
     return ClientContact(
-      phone: map['phone'] as String,
-      email: map['email'] as String,
-      address: map['address'] as String,
+      phone: (map['phone'] as String?) ?? '',
+      email: (map['email'] as String?) ?? '',
+      address: (map['address'] as String?) ?? '',
     );
   }
 
@@ -162,8 +164,8 @@ class AgencyData {
 
   factory AgencyData.fromMap(Map<String, dynamic> map) {
     return AgencyData(
-      agencyNumber: map['agencyNumber'] as String,
-      attachmentUrl: map['attachmentUrl'] as String,
+      agencyNumber: (map['agencyNumber'] as String?) ?? '',
+      attachmentUrl: (map['attachmentUrl'] as String?) ?? '',
     );
   }
 
@@ -186,8 +188,8 @@ class ClientStats {
 
   factory ClientStats.fromMap(Map<String, dynamic> map) {
     return ClientStats(
-      activeCases: (map['activeCases'] as num).toInt(),
-      totalInvoiced: (map['totalInvoiced'] as num).toDouble(),
+      activeCases: (map['activeCases'] as num?)?.toInt() ?? 0,
+      totalInvoiced: (map['totalInvoiced'] as num?)?.toDouble() ?? 0.0,
     );
   }
 

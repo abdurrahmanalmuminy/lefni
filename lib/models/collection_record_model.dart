@@ -22,16 +22,20 @@ class CollectionRecordModel {
   });
 
   factory CollectionRecordModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return CollectionRecordModel(
       id: doc.id,
-      invoiceId: data['invoiceId'] as String,
-      amount: (data['amount'] as num).toDouble(),
-      paymentDate: (data['paymentDate'] as Timestamp).toDate(),
-      paymentMethod: data['paymentMethod'] as String,
+      invoiceId: (data['invoiceId'] as String?) ?? '',
+      amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      paymentDate: data['paymentDate'] != null && data['paymentDate'] is Timestamp
+          ? (data['paymentDate'] as Timestamp).toDate()
+          : DateTime.now(),
+      paymentMethod: (data['paymentMethod'] as String?) ?? '',
       receiptUrl: data['receiptUrl'] as String?,
-      recordedBy: data['recordedBy'] as String,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      recordedBy: (data['recordedBy'] as String?) ?? '',
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 

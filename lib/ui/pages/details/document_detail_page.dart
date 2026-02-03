@@ -6,6 +6,7 @@ import 'package:lefni/services/firestore/document_service.dart';
 import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -152,9 +153,7 @@ class DocumentDetailPage extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             InkWell(
-                              onTap: () {
-                                // TODO: Open file
-                              },
+                              onTap: () => FileViewer.openFile(context, document.fileUrl, document.fileType),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 8),
                                 child: Row(

@@ -1,0 +1,52 @@
+{
+  "tabs": [
+    {
+      "tab": "Home",
+      "navigation_items": [
+        { "label": "today", "route": "/today" },
+        { "label": "contracts", "route": "/contracts" },
+        { "label": "cases", "route": "/cases" },
+        { "label": "sessions", "route": "/sessions" },
+        { "label": "appointments", "route": "/appointments" },
+        { "label": "clients", "route": "/clients" },
+        { "label": "documents", "route": "/documents" },
+        { "label": "tasks", "route": "/tasks" },
+        { "label": "tools", "route": "/tools" },
+        { "label": "help", "route": "/help" }
+      ]
+    },
+    {
+      "tab": "Invoices",
+      "navigation_items": [
+        { "label": "invoicesAndRevenues", "route": "/invoices/revenues" },
+        { "label": "clientFees", "route": "/invoices/fees" },
+        { "label": "receiptVouchers", "route": "/invoices/vouchers" },
+        { "label": "collectionRecord", "route": "/invoices/collection" },
+        { "label": "expensesAndPayments", "route": "/invoices/expenses" },
+        { "label": "collaboratorAccounts", "route": "/invoices/collaborators" }
+      ]
+    },
+    {
+      "tab": "Users",
+      "navigation_items": [
+        { "label": "cooperatingLawyers", "route": "/users/lawyers" },
+        { "label": "students", "route": "/users/students" },
+        { "label": "engineeringOffices", "route": "/users/engineering" },
+        { "label": "legalAccountants", "route": "/users/accountants" },
+        { "label": "translators", "route": "/users/translators" }
+      ]
+    },
+    {
+      "tab": "Reports",
+      "navigation_items": [
+        { "label": "monthlyReports", "route": "/reports/monthly" },
+        { "label": "yearlyReports", "route": "/reports/yearly" },
+        { "label": "casesStats", "route": "/reports/cases-stats" },
+        { "label": "clientReports", "route": "/reports/clients" },
+        { "label": "financialReports", "route": "/reports/financial" },
+        { "label": "performanceReports", "route": "/reports/performance" }
+      ]
+    }
+  ]
+}
+

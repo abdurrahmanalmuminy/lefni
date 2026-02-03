@@ -24,19 +24,23 @@ class AppointmentModel {
   });
 
   factory AppointmentModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return AppointmentModel(
       id: doc.id,
-      clientId: data['clientId'] as String,
-      dateTime: (data['dateTime'] as Timestamp).toDate(),
-      purpose: data['purpose'] as String,
-      status: AppointmentStatus.fromString(data['status'] as String),
+      clientId: (data['clientId'] as String?) ?? '',
+      dateTime: data['dateTime'] != null && data['dateTime'] is Timestamp
+          ? (data['dateTime'] as Timestamp).toDate()
+          : DateTime.now(),
+      purpose: (data['purpose'] as String?) ?? '',
+      status: AppointmentStatus.fromString(data['status'] as String? ?? 'scheduled'),
       smsReminderSent: data['smsReminderSent'] as bool? ?? false,
-      reminderSentAt: data['reminderSentAt'] != null
+      reminderSentAt: data['reminderSentAt'] != null && data['reminderSentAt'] is Timestamp
           ? (data['reminderSentAt'] as Timestamp).toDate()
           : null,
-      createdBy: data['createdBy'] as String,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdBy: (data['createdBy'] as String?) ?? '',
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 

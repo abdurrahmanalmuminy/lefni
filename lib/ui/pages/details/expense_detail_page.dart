@@ -4,6 +4,7 @@ import 'package:lefni/models/expense_model.dart';
 import 'package:lefni/services/firestore/expense_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -171,9 +172,7 @@ class ExpenseDetailPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               InkWell(
-                                onTap: () {
-                                  // TODO: Open receipt image
-                                },
+                                onTap: () => FileViewer.openImage(context, expense.receiptImageUrl!),
                                 child: Container(
                                   width: double.infinity,
                                   height: 200,

@@ -22,16 +22,20 @@ class ExpenseModel {
   });
 
   factory ExpenseModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return ExpenseModel(
       id: doc.id,
-      category: data['category'] as String,
-      amount: (data['amount'] as num).toDouble(),
-      date: (data['date'] as Timestamp).toDate(),
+      category: (data['category'] as String?) ?? '',
+      amount: (data['amount'] as num?)?.toDouble() ?? 0.0,
+      date: data['date'] != null && data['date'] is Timestamp
+          ? (data['date'] as Timestamp).toDate()
+          : DateTime.now(),
       receiptImageUrl: data['receiptImageUrl'] as String?,
       description: data['description'] as String?,
-      createdBy: data['createdBy'] as String,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdBy: (data['createdBy'] as String?) ?? '',
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 

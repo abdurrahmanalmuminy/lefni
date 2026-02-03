@@ -6,7 +6,10 @@ class CaseModel {
   final String caseNumber;
   final String clientId;
   final String leadLawyerId;
-  final CaseCategory category;
+  // Classification fields from Saudi court classifications JSON
+  final String category; // Main category key from JSON (e.g., "personal_status")
+  final String? subCategory; // Sub-category key from JSON
+  final Map<String, dynamic>? caseType; // Selected case type from JSON {id, ar, en}
   final CaseStatus status;
   final CourtDetails courtDetails;
   final List<CaseCollaborator> collaborators;
@@ -20,6 +23,8 @@ class CaseModel {
     required this.clientId,
     required this.leadLawyerId,
     required this.category,
+    this.subCategory,
+    this.caseType,
     required this.status,
     required this.courtDetails,
     required this.collaborators,
@@ -29,23 +34,36 @@ class CaseModel {
   });
 
   factory CaseModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return CaseModel(
       id: doc.id,
-      caseNumber: data['caseNumber'] as String,
-      clientId: data['clientId'] as String,
-      leadLawyerId: data['leadLawyerId'] as String,
-      category: CaseCategory.fromString(data['category'] as String),
-      status: CaseStatus.fromString(data['status'] as String),
+      caseNumber: (data['caseNumber'] as String?) ?? '',
+      clientId: (data['clientId'] as String?) ?? '',
+      leadLawyerId: (data['leadLawyerId'] as String?) ?? '',
+      category: (data['category'] as String?) ?? '',
+      subCategory: data['subCategory'] as String?,
+      caseType: data['caseType'] as Map<String, dynamic>?,
+      status: CaseStatus.fromString(data['status'] as String? ?? 'prospect'),
       courtDetails: CourtDetails.fromMap(
-          data['courtDetails'] as Map<String, dynamic>),
+          data['courtDetails'] as Map<String, dynamic>? ?? {}),
       collaborators: (data['collaborators'] as List<dynamic>?)
-              ?.map((e) => CaseCollaborator.fromMap(e as Map<String, dynamic>))
+              ?.map((e) {
+                try {
+                  return CaseCollaborator.fromMap(e as Map<String, dynamic>);
+                } catch (_) {
+                  return null;
+                }
+              })
+              .whereType<CaseCollaborator>()
               .toList() ??
           [],
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
-      closedAt: data['closedAt'] != null
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      updatedAt: data['updatedAt'] != null && data['updatedAt'] is Timestamp
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      closedAt: data['closedAt'] != null && data['closedAt'] is Timestamp
           ? (data['closedAt'] as Timestamp).toDate()
           : null,
     );
@@ -56,7 +74,9 @@ class CaseModel {
       'caseNumber': caseNumber,
       'clientId': clientId,
       'leadLawyerId': leadLawyerId,
-      'category': category.value,
+      'category': category,
+      if (subCategory != null) 'subCategory': subCategory,
+      if (caseType != null) 'caseType': caseType,
       'status': status.value,
       'courtDetails': courtDetails.toMap(),
       'collaborators': collaborators.map((c) => c.toMap()).toList(),
@@ -72,7 +92,9 @@ class CaseModel {
       caseNumber: json['caseNumber'] as String,
       clientId: json['clientId'] as String,
       leadLawyerId: json['leadLawyerId'] as String,
-      category: CaseCategory.fromString(json['category'] as String),
+      category: json['category'] as String,
+      subCategory: json['subCategory'] as String?,
+      caseType: json['caseType'] as Map<String, dynamic>?,
       status: CaseStatus.fromString(json['status'] as String),
       courtDetails:
           CourtDetails.fromMap(json['courtDetails'] as Map<String, dynamic>),
@@ -94,7 +116,9 @@ class CaseModel {
       'caseNumber': caseNumber,
       'clientId': clientId,
       'leadLawyerId': leadLawyerId,
-      'category': category.value,
+      'category': category,
+      if (subCategory != null) 'subCategory': subCategory,
+      if (caseType != null) 'caseType': caseType,
       'status': status.value,
       'courtDetails': courtDetails.toMap(),
       'collaborators': collaborators.map((c) => c.toMap()).toList(),
@@ -109,7 +133,9 @@ class CaseModel {
     String? caseNumber,
     String? clientId,
     String? leadLawyerId,
-    CaseCategory? category,
+    String? category,
+    String? subCategory,
+    Map<String, dynamic>? caseType,
     CaseStatus? status,
     CourtDetails? courtDetails,
     List<CaseCollaborator>? collaborators,
@@ -123,6 +149,8 @@ class CaseModel {
       clientId: clientId ?? this.clientId,
       leadLawyerId: leadLawyerId ?? this.leadLawyerId,
       category: category ?? this.category,
+      subCategory: subCategory ?? this.subCategory,
+      caseType: caseType ?? this.caseType,
       status: status ?? this.status,
       courtDetails: courtDetails ?? this.courtDetails,
       collaborators: collaborators ?? this.collaborators,
@@ -133,43 +161,8 @@ class CaseModel {
   }
 }
 
-enum CaseCategory {
-  civil('civil'),
-  criminal('criminal'),
-  labor('labor'),
-  intellectualProperty('intellectual_property'),
-  commercial('commercial'),
-  administrative('administrative');
-
-  final String value;
-  const CaseCategory(this.value);
-
-  static CaseCategory fromString(String value) {
-    return CaseCategory.values.firstWhere(
-      (e) => e.value == value,
-      orElse: () => CaseCategory.civil,
-    );
-  }
-}
-
-extension CaseCategoryLocalization on CaseCategory {
-  String localized(AppLocalizations localizations) {
-    switch (this) {
-      case CaseCategory.civil:
-        return localizations.caseCategoryCivil;
-      case CaseCategory.criminal:
-        return localizations.caseCategoryCriminal;
-      case CaseCategory.labor:
-        return localizations.caseCategoryLabor;
-      case CaseCategory.intellectualProperty:
-        return localizations.caseCategoryIntellectualProperty;
-      case CaseCategory.commercial:
-        return localizations.caseCategoryCommercial;
-      case CaseCategory.administrative:
-        return localizations.caseCategoryAdministrative;
-    }
-  }
-}
+// CaseCategory enum removed - now using JSON classifications
+// category, subCategory, and caseType fields from Saudi court classifications JSON
 
 enum CaseStatus {
   prospect('prospect'),
@@ -213,8 +206,8 @@ class CourtDetails {
 
   factory CourtDetails.fromMap(Map<String, dynamic> map) {
     return CourtDetails(
-      courtName: map['courtName'] as String,
-      circuit: map['circuit'] as String,
+      courtName: (map['courtName'] as String?) ?? '',
+      circuit: (map['circuit'] as String?) ?? '',
       judge: map['judge'] as String?,
     );
   }
@@ -241,9 +234,11 @@ class CaseCollaborator {
 
   factory CaseCollaborator.fromMap(Map<String, dynamic> map) {
     return CaseCollaborator(
-      userId: map['userId'] as String,
-      role: CollaboratorRole.fromString(map['role'] as String),
-      assignedAt: (map['assignedAt'] as Timestamp).toDate(),
+      userId: (map['userId'] as String?) ?? '',
+      role: CollaboratorRole.fromString(map['role'] as String? ?? 'engineer'),
+      assignedAt: map['assignedAt'] != null && map['assignedAt'] is Timestamp
+          ? (map['assignedAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 

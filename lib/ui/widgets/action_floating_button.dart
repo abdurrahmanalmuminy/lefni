@@ -72,6 +72,8 @@ class ActionFloatingButton extends StatelessWidget {
         return localizations.addUser;
       case 'addTranslator':
         return localizations.addUser;
+      case 'consultation':
+        return 'استشارة';
       default:
         return labelKey;
     }

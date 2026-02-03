@@ -40,32 +40,41 @@ class FinanceModel {
   });
 
   factory FinanceModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return FinanceModel(
       id: doc.id,
-      type: FinanceType.fromString(data['type'] as String),
-      clientId: data['clientId'] as String,
+      type: FinanceType.fromString(data['type'] as String? ?? 'invoice'),
+      clientId: (data['clientId'] as String?) ?? '',
       caseId: data['caseId'] as String?,
       items: (data['items'] as List<dynamic>?)
-              ?.map((e) => FinanceItem.fromMap(e as Map<String, dynamic>))
+              ?.map((e) {
+                try {
+                  return FinanceItem.fromMap(e as Map<String, dynamic>);
+                } catch (_) {
+                  return null;
+                }
+              })
+              .whereType<FinanceItem>()
               .toList() ??
           [],
-      subtotal: (data['subtotal'] as num).toDouble(),
-      vat: (data['vat'] as num).toDouble(),
-      total: (data['total'] as num).toDouble(),
-      currency: data['currency'] as String? ?? 'SAR',
-      status: FinanceStatus.fromString(data['status'] as String),
+      subtotal: (data['subtotal'] as num?)?.toDouble() ?? 0.0,
+      vat: (data['vat'] as num?)?.toDouble() ?? 0.0,
+      total: (data['total'] as num?)?.toDouble() ?? 0.0,
+      currency: (data['currency'] as String?) ?? 'SAR',
+      status: FinanceStatus.fromString(data['status'] as String? ?? 'draft'),
       pdfUrl: data['pdfUrl'] as String?,
-      dueDate: data['dueDate'] != null
+      dueDate: data['dueDate'] != null && data['dueDate'] is Timestamp
           ? (data['dueDate'] as Timestamp).toDate()
           : null,
-      paidAt: data['paidAt'] != null
+      paidAt: data['paidAt'] != null && data['paidAt'] is Timestamp
           ? (data['paidAt'] as Timestamp).toDate()
           : null,
       paymentMethod: data['paymentMethod'] as String?,
       notes: data['notes'] as String?,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      createdBy: data['createdBy'] as String,
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      createdBy: (data['createdBy'] as String?) ?? '',
     );
   }
 
@@ -232,9 +241,9 @@ class FinanceItem {
 
   factory FinanceItem.fromMap(Map<String, dynamic> map) {
     return FinanceItem(
-      service: map['service'] as String,
-      price: (map['price'] as num).toDouble(),
-      quantity: map['quantity'] != null ? (map['quantity'] as num).toInt() : null,
+      service: (map['service'] as String?) ?? '',
+      price: (map['price'] as num?)?.toDouble() ?? 0.0,
+      quantity: map['quantity'] != null ? (map['quantity'] as num?)?.toInt() : null,
       description: map['description'] as String?,
     );
   }

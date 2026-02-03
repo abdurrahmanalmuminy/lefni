@@ -7,6 +7,7 @@ import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/ui/widgets/status_chip.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -327,10 +328,8 @@ class SessionDetailPage extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 ...session.report!.attachments.map((url) => Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 4),
-                                      child: InkWell(
-                                        onTap: () {
-                                          // TODO: Open attachment
-                                        },
+                                        child: InkWell(
+                                          onTap: () => FileViewer.openFile(context, url),
                                         child: Row(
                                           children: [
                                             Icon(

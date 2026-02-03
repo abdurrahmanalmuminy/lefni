@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/models/user_model.dart';
+import 'package:lefni/exceptions/app_exceptions.dart';
+import 'package:lefni/utils/logger.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -26,7 +28,8 @@ class AuthService {
       );
 
       if (userCredential.user == null) {
-        throw Exception('Sign in failed: No user returned');
+        AppLogger.error('Sign in failed: No user returned');
+        throw AuthException('Sign in failed: No user returned', code: 'NO_USER_RETURNED');
       }
 
       // Wait for auth token to be ready before accessing Firestore
@@ -58,14 +61,18 @@ class AuthService {
       // Check if user is active
       if (!userModel.isActive) {
         await signOut();
-        throw Exception('User account is deactivated');
+        throw AuthException.userDisabled();
       }
 
+      AppLogger.info('User signed in successfully: ${userModel.email}');
       return userModel;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      throw Exception('Sign in failed: $e');
+      AppLogger.error('Sign in failed', e);
+      throw AuthException('Sign in failed: $e', originalError: e);
     }
   }
 
@@ -73,8 +80,10 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
+      AppLogger.info('User signed out successfully');
     } catch (e) {
-      throw Exception('Sign out failed: $e');
+      AppLogger.error('Sign out failed', e);
+      throw AuthException('Sign out failed: $e', originalError: e);
     }
   }
 
@@ -108,7 +117,8 @@ class AuthService {
       );
 
       if (userCredential.user == null) {
-        throw Exception('Sign up failed: No user returned');
+        AppLogger.error('Sign up failed: No user returned');
+        throw AuthException('Sign up failed: No user returned', code: 'NO_USER_RETURNED');
       }
 
       // Wait for auth token to be ready before accessing Firestore
@@ -129,11 +139,15 @@ class AuthService {
 
       await _userService.createUser(newUser);
 
+      AppLogger.info('User signed up successfully: ${newUser.email}');
       return newUser;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      throw Exception('Sign up failed: $e');
+      AppLogger.error('Sign up failed', e);
+      throw AuthException('Sign up failed: $e', originalError: e);
     }
   }
 
@@ -141,10 +155,14 @@ class AuthService {
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
+      AppLogger.info('Password reset email sent to: $email');
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      throw Exception('Failed to send password reset email: $e');
+      AppLogger.error('Failed to send password reset email', e);
+      throw AuthException('Failed to send password reset email: $e', originalError: e);
     }
   }
 
@@ -164,8 +182,10 @@ class AuthService {
           if (kIsWeb && (e.code == 'missing-recaptcha-token' || 
                          e.code == 'invalid-app-credential' ||
                          e.message?.contains('reCAPTCHA') == true)) {
-            throw Exception(
-              'reCAPTCHA verification failed. Please ensure reCAPTCHA is properly configured in Firebase Console and the reCAPTCHA script is loaded.'
+            throw AuthException(
+              'reCAPTCHA verification failed. Please ensure reCAPTCHA is properly configured in Firebase Console and the reCAPTCHA script is loaded.',
+              code: 'RECAPTCHA_FAILED',
+              originalError: e,
             );
           }
           throw _handleAuthException(e);
@@ -179,10 +199,11 @@ class AuthService {
         timeout: const Duration(seconds: 60),
       );
     } catch (e) {
-      if (e is Exception) {
+      if (e is AuthException) {
         rethrow;
       }
-      throw Exception('Failed to send verification code: $e');
+      AppLogger.error('Failed to send verification code', e);
+      throw AuthException('Failed to send verification code: $e', originalError: e);
     }
   }
 
@@ -196,7 +217,7 @@ class AuthService {
   }) async {
     try {
       if (_verificationId == null) {
-        throw Exception('Verification ID not found. Please request a new code.');
+        throw AuthException('Verification ID not found. Please request a new code.', code: 'VERIFICATION_ID_NOT_FOUND');
       }
 
       final credential = PhoneAuthProvider.credential(
@@ -207,7 +228,8 @@ class AuthService {
       final userCredential = await _auth.signInWithCredential(credential);
 
       if (userCredential.user == null) {
-        throw Exception('Verification failed: No user returned');
+        AppLogger.error('Verification failed: No user returned');
+        throw AuthException('Verification failed: No user returned', code: 'NO_USER_RETURNED');
       }
 
       // Wait for auth token to be ready before accessing Firestore
@@ -251,7 +273,7 @@ class AuthService {
         }
         // User doesn't exist but trying to sign in
         await signOut();
-        throw Exception('No account found with this phone number. Please sign up first.');
+        throw AuthException.userNotFound();
       } else {
         // Update last login timestamp
         await _userService.updateLastLogin(userCredential.user!.uid);
@@ -260,20 +282,21 @@ class AuthService {
       // Check if user is active
       if (!userModel.isActive) {
         await signOut();
-        throw Exception('User account is deactivated');
+        throw AuthException.userDisabled();
       }
 
       // Clear verification state
       _verificationId = null;
 
+      AppLogger.info('Phone verification successful: ${userModel.uid}');
       return userModel;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
-      throw Exception('Verification failed: $e');
+      AppLogger.error('Verification failed', e);
+      throw AuthException('Verification failed: $e', originalError: e);
     }
   }
 
@@ -287,7 +310,8 @@ class AuthService {
     }
     final result = await verifyPhoneNumber(smsCode, isSignUp: true, region: region, city: city);
     if (result == null) {
-      throw Exception('Signup failed: Unable to create user');
+      AppLogger.error('Signup failed: Unable to create user');
+      throw AuthException('Signup failed: Unable to create user', code: 'USER_CREATION_FAILED');
     }
     return result;
   }
@@ -307,7 +331,7 @@ class AuthService {
     try {
       final user = currentUser;
       if (user == null) {
-        throw Exception('User not authenticated. Please verify your phone number first.');
+        throw AuthException('User not authenticated. Please verify your phone number first.', code: 'NOT_AUTHENTICATED');
       }
 
       // Wait for auth token to be ready before accessing Firestore
@@ -351,47 +375,49 @@ class AuthService {
       // Check if user is active
       if (!userModel.isActive) {
         await signOut();
-        throw Exception('User account is deactivated');
+        throw AuthException.userDisabled();
       }
 
+      AppLogger.info('Phone signup completed successfully: ${userModel.uid}');
       return userModel;
+    } on AuthException {
+      rethrow;
     } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
-      throw Exception('Failed to complete signup: $e');
+      AppLogger.error('Failed to complete signup', e);
+      throw AuthException('Failed to complete signup: $e', originalError: e);
     }
   }
 
   /// Handle Firebase Auth exceptions and return user-friendly messages
-  Exception _handleAuthException(FirebaseAuthException e) {
+  AuthException _handleAuthException(FirebaseAuthException e) {
+    AppLogger.warning('Auth exception: ${e.code}', e);
     switch (e.code) {
       case 'user-not-found':
-        return Exception('No user found with this email');
+        return AuthException.userNotFound(e);
       case 'wrong-password':
-        return Exception('Incorrect password');
+        return AuthException.invalidCredentials(e);
       case 'invalid-email':
-        return Exception('Invalid email address');
+        return AuthException('Invalid email address', code: 'INVALID_EMAIL', originalError: e);
       case 'user-disabled':
-        return Exception('This account has been disabled');
+        return AuthException.userDisabled(e);
       case 'too-many-requests':
-        return Exception('Too many failed attempts. Please try again later');
+        return AuthException('Too many failed attempts. Please try again later', code: 'TOO_MANY_REQUESTS', originalError: e);
       case 'operation-not-allowed':
-        return Exception('Sign in method is not enabled');
+        return AuthException('Sign in method is not enabled', code: 'OPERATION_NOT_ALLOWED', originalError: e);
       case 'email-already-in-use':
-        return Exception('This email is already registered');
+        return AuthException.emailAlreadyInUse(e);
       case 'weak-password':
-        return Exception('Password is too weak. Please use a stronger password');
+        return AuthException.weakPassword(e);
       case 'invalid-verification-code':
-        return Exception('Invalid verification code');
+        return AuthException.invalidVerificationCode(e);
       case 'invalid-phone-number':
-        return Exception('Invalid phone number format');
+        return AuthException.invalidPhoneNumber(e);
       case 'session-expired':
-        return Exception('Verification session expired. Please request a new code');
+        throw AuthException('Verification session expired. Please request a new code');
       case 'quota-exceeded':
-        return Exception('SMS quota exceeded. Please try again later');
+        throw AuthException('SMS quota exceeded. Please try again later');
       default:
-        return Exception('Authentication failed: ${e.message}');
+        throw AuthException('Authentication failed: ${e.message}', originalError: e);
     }
   }
 }

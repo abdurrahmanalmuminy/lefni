@@ -18,6 +18,8 @@ import 'package:lefni/ui/pages/home/documents_list_page.dart';
 import 'package:lefni/ui/pages/home/tasks_list_page.dart';
 import 'package:lefni/ui/pages/home/tools_page.dart';
 import 'package:lefni/ui/pages/home/help_page.dart';
+import 'package:lefni/ui/widgets/forms/create_consultation_form.dart';
+import 'package:lefni/ui/widgets/action_floating_button.dart';
 // Invoices pages
 import 'package:lefni/ui/pages/invoices/invoices_revenues_page.dart';
 import 'package:lefni/ui/pages/invoices/client_fees_page.dart';
@@ -494,6 +496,18 @@ class _DashboardState extends State<Dashboard>
           ],
         ),
         body: _buildBody(),
+        floatingActionButton: isClient
+            ? ActionFloatingButton(
+                labelKey: 'consultation',
+                icon: Icons.chat_bubble_outline,
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => const CreateConsultationForm(),
+                  );
+                },
+              )
+            : null,
       ),
     );
   }

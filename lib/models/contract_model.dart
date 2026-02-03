@@ -29,24 +29,35 @@ class ContractModel {
   });
 
   factory ContractModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return ContractModel(
       id: doc.id,
-      clientId: data['clientId'] as String,
+      clientId: (data['clientId'] as String?) ?? '',
       caseId: data['caseId'] as String?,
-      partyType: PartyType.fromString(data['partyType'] as String),
-      title: data['title'] as String,
-      content: data['content'] as String,
+      partyType: PartyType.fromString(data['partyType'] as String? ?? 'client'),
+      title: (data['title'] as String?) ?? '',
+      content: (data['content'] as String?) ?? '',
       files: (data['files'] as List<dynamic>?)
-              ?.map((e) => ContractFile.fromMap(e as Map<String, dynamic>))
+              ?.map((e) {
+                try {
+                  return ContractFile.fromMap(e as Map<String, dynamic>);
+                } catch (_) {
+                  return null;
+                }
+              })
+              .whereType<ContractFile>()
               .toList() ??
           [],
       signatureStatus: SignatureStatus.fromMap(
-          data['signatureStatus'] as Map<String, dynamic>),
+          data['signatureStatus'] as Map<String, dynamic>? ?? {}),
       metadata: ContractMetadata.fromMap(
-          data['metadata'] as Map<String, dynamic>),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+          data['metadata'] as Map<String, dynamic>? ?? {}),
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      updatedAt: data['updatedAt'] != null && data['updatedAt'] is Timestamp
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 
@@ -179,9 +190,9 @@ class ContractFile {
 
   factory ContractFile.fromMap(Map<String, dynamic> map) {
     return ContractFile(
-      name: map['name'] as String,
-      url: map['url'] as String,
-      type: FileType.fromString(map['type'] as String),
+      name: (map['name'] as String?) ?? '',
+      url: (map['url'] as String?) ?? '',
+      type: FileType.fromString(map['type'] as String? ?? 'pdf'),
     );
   }
 
@@ -224,11 +235,11 @@ class SignatureStatus {
 
   factory SignatureStatus.fromMap(Map<String, dynamic> map) {
     return SignatureStatus(
-      isSigned: map['isSigned'] as bool,
-      signedAt: map['signedAt'] != null
+      isSigned: map['isSigned'] as bool? ?? false,
+      signedAt: map['signedAt'] != null && map['signedAt'] is Timestamp
           ? (map['signedAt'] as Timestamp).toDate()
           : null,
-      status: SignatureStatusType.fromString(map['status'] as String),
+      status: SignatureStatusType.fromString(map['status'] as String? ?? 'pending'),
       ipAddress: map['ipAddress'] as String?,
     );
   }
@@ -270,9 +281,10 @@ class ContractMetadata {
 
   factory ContractMetadata.fromMap(Map<String, dynamic> map) {
     return ContractMetadata(
-      isArchived: map['isArchived'] as bool,
+      isArchived: map['isArchived'] as bool? ?? false,
       tags: (map['tags'] as List<dynamic>?)
               ?.map((e) => e as String)
+              .whereType<String>()
               .toList() ??
           [],
     );

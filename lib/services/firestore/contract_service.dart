@@ -56,13 +56,14 @@ class ContractService {
     }
   }
 
-  // Get contracts by client
-  Stream<List<ContractModel>> getContractsByClient(String clientId) {
+  // Get contracts by client (paginated)
+  Stream<List<ContractModel>> getContractsByClient(String clientId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('clientId', isEqualTo: clientId)
         .where('metadata.isArchived', isEqualTo: false)
         .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ContractModel.fromFirestore(doc))
@@ -82,12 +83,27 @@ class ContractService {
             .toList());
   }
 
-  // Get all contracts
-  Stream<List<ContractModel>> getAllContracts() {
+  // Get all contracts (paginated, non-archived)
+  Stream<List<ContractModel>> getAllContracts({int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('metadata.isArchived', isEqualTo: false)
         .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ContractModel.fromFirestore(doc))
+            .toList());
+  }
+
+  // Get contracts by signature status
+  Stream<List<ContractModel>> getContractsBySignatureStatus(String status, {int limit = 20}) {
+    return _firestore
+        .collection(_collection)
+        .where('metadata.isArchived', isEqualTo: false)
+        .where('signatureStatus.status', isEqualTo: status)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => ContractModel.fromFirestore(doc))

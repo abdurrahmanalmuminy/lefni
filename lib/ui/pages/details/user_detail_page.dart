@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lefni/models/user_model.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -288,9 +289,7 @@ class UserDetailPage extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: InkWell(
-                onTap: () {
-                  // TODO: Open CV
-                },
+                onTap: () => FileViewer.openFile(context, user.profile.cvUrl!),
                 child: Row(
                   children: [
                     Icon(

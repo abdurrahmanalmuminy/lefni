@@ -92,7 +92,7 @@ class _CasesListPageState extends State<CasesListPage> {
             child: StreamBuilder(
               stream: _statusFilter != null
                   ? CaseService().getCasesByStatus(_statusFilter!)
-                  : CaseService().getCasesByStatus(CaseStatus.active), // TODO: Get all cases
+                  : CaseService().getAllCases(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());

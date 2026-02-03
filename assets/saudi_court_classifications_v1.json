@@ -1,0 +1,517 @@
+{
+    "personal_status": {
+      "ar": "أحوال شخصية",
+      "en": "Personal Status",
+      "sub_categories": {
+        "general": {
+          "ar": "التصنيف العام",
+          "en": "General Classification",
+          "cases": [
+            {"id": 1, "ar": "إقامة حارس قضائي", "en": "Appointing a Judicial Guardian"},
+            {"id": 2, "ar": "التعويض عن أضرار التقاضي", "en": "Compensation for Litigation Damages"},
+            {"id": 3, "ar": "أتعاب محامين أو وكلاء", "en": "Lawyer/Representative Fees"},
+            {"id": 4, "ar": "مطالبة بمستندات", "en": "Claim for Documents"},
+            {"id": 5, "ar": "معارضة على صك إنهائي", "en": "Objection to a Final Deed"},
+            {"id": 7, "ar": "منع من السفر", "en": "Travel Ban"},
+            {"id": 8, "ar": "هبة أو رجوع عنها", "en": "Gift or Revocation of Gift"},
+            {"id": 8, "ar": "إثبات شهادة", "en": "Proving Testimony"}
+          ]
+        },
+        "endowments_and_wills": {
+          "ar": "دعاوى الأوقاف والوصايا",
+          "en": "Endowments and Wills",
+          "cases": [
+            {"id": 9, "ar": "إبطال وقف أو وصية", "en": "Invalidation of Endowment or Will"},
+            {"id": 10, "ar": "إثبات وقف أو وصية", "en": "Proving an Endowment or Will"},
+            {"id": 11, "ar": "استحقاق في وقف أو وصية", "en": "Entitlement in Endowment or Will"},
+            {"id": 12, "ar": "عزل ناظر وقف أو وصية", "en": "Dismissal of Endowment/Will Trustee"},
+            {"id": 13, "ar": "محاسبة ناظر وقف أو وصية", "en": "Accounting of Endowment/Will Trustee"}
+          ]
+        },
+        "custody_and_alimony": {
+          "ar": "دعاوى الحضانة والزيارة والنفقة",
+          "en": "Custody, Visitation, and Alimony",
+          "cases": [
+            {"id": 14, "ar": "أجرة رضاع أو حضانة", "en": "Breastfeeding or Custody Fees"},
+            {"id": 15, "ar": "تسليم صغير للحاضنة", "en": "Handing Over a Minor to the Custodian"},
+            {"id": 16, "ar": "حضانة", "en": "Custody"},
+            {"id": 17, "ar": "رؤية صغير", "en": "Child Visitation"},
+            {"id": 18, "ar": "زيادة نفقة أو إنقاصها أو إلغائها", "en": "Increase, Decrease, or Cancellation of Alimony"},
+            {"id": 19, "ar": "زيارة أولاد أو غيرهم", "en": "Visitation of Children or Others"},
+            {"id": 20, "ar": "نفقة ماضية", "en": "Past Alimony"},
+            {"id": 21, "ar": "نفقة مستمرة", "en": "Ongoing Alimony"}
+          ]
+        },
+        "marriage_and_separation": {
+          "ar": "دعاوى الزواج والفرقة",
+          "en": "Marriage and Separation",
+          "cases": [
+            {"id": 22, "ar": "إثبات المراجعة", "en": "Proving Reconciliation (Raj'a)"},
+            {"id": 23, "ar": "إثبات طلاق", "en": "Proving Divorce"},
+            {"id": 24, "ar": "إثبات زواج", "en": "Proving Marriage"},
+            {"id": 25, "ar": "مهر", "en": "Dowry"},
+            {"id": 26, "ar": "عفش الزوجية", "en": "Marital Furniture"},
+            {"id": 27, "ar": "فسخ عقد زواج", "en": "Annulment of Marriage Contract"}
+          ]
+        },
+        "guardianship": {
+          "ar": "دعاوى الولاية",
+          "en": "Guardianship",
+          "cases": [
+            {"id": 28, "ar": "إثبات نسب أو نفيه", "en": "Proving or Denying Lineage"},
+            {"id": 29, "ar": "حجر أو رفعه", "en": "Interdiction or its Lifting"},
+            {"id": 30, "ar": "عزل ولي", "en": "Dismissal of a Guardian"},
+            {"id": 31, "ar": "عضل", "en": "Marriage Prevention (Adhl)"},
+            {"id": 32, "ar": "محاسبة ولي", "en": "Accounting of a Guardian"}
+          ]
+        },
+        "inheritance": {
+          "ar": "دعاوى قسمة التركات",
+          "en": "Inheritance Division",
+          "cases": [
+            {"id": 33, "ar": "قسمة تركة أكثر من 10 مليون ريال", "en": "Estate Division Over 10M SAR"},
+            {"id": 34, "ar": "قسمة تركة عقارية", "en": "Real Estate Estate Division"},
+            {"id": 35, "ar": "قسمة تركة مالية", "en": "Financial Estate Division"},
+            {"id": 36, "ar": "محاسبة في تركة", "en": "Estate Accounting"}
+          ]
+        }
+      }
+    },
+    "commercial": {
+      "ar": "تجاري",
+      "en": "Commercial",
+      "sub_categories": {
+        "arbitration_appeals": {
+          "ar": "الاستئناف والتحكيم",
+          "en": "Appeals and Arbitration",
+          "cases": [
+            {"id": 37, "ar": "التحكيم (تجاري)", "en": "Arbitration (Commercial)"}
+          ]
+        },
+        "commercial_regulations": {
+          "ar": "الأنظمة التجارية",
+          "en": "Commercial Regulations",
+          "cases": [
+            {"id": 38, "ar": "الاستثمار الأجنبي", "en": "Foreign Investment"},
+            {"id": 39, "ar": "البيانات التجارية", "en": "Commercial Data"},
+            {"id": 40, "ar": "التجارة البحرية", "en": "Maritime Trade"},
+            {"id": 41, "ar": "الامتياز التجاري", "en": "Commercial Franchise"},
+            {"id": 42, "ar": "الرهن التجاري", "en": "Commercial Pledge"},
+            {"id": 43, "ar": "السجل التجاري", "en": "Commercial Registry"},
+            {"id": 44, "ar": "مكافحة الغش التجاري", "en": "Anti-Commercial Fraud"},
+            {"id": 45, "ar": "الأوراق التجارية", "en": "Commercial Papers"},
+            {"id": 46, "ar": "المنافسة غير المشروعة", "en": "Unfair Competition"},
+            {"id": 47, "ar": "الوكالات التجارية", "en": "Commercial Agencies"},
+            {"id": 48, "ar": "الأسماء التجارية", "en": "Trade Names"},
+            {"id": 49, "ar": "حماية الأسرار التجارية", "en": "Trade Secret Protection"}
+          ]
+        },
+        "companies": {
+          "ar": "الشركات",
+          "en": "Companies",
+          "cases": [
+            {"id": 50, "ar": "شركات المضاربة", "en": "Speculative Companies"},
+            {"id": 51, "ar": "الشركات النظامية", "en": "Regulated Companies"},
+            {"id": 52, "ar": "عقد الشركة", "en": "Company Contract"}
+          ]
+        },
+        "legal_requests": {
+          "ar": "الطلبات القضائية",
+          "en": "Judicial Requests",
+          "cases": [
+            {"id": 53, "ar": "أتعاب محاماة أو وكلاء", "en": "Lawyer/Representative Fees"},
+            {"id": 54, "ar": "دعوى الضرر بين التجار بسبب المسئولية التقصيرية", "en": "Tort Liability Damages Between Merchants"},
+            {"id": 55, "ar": "المعينين في القضايا التجارية", "en": "Appointees in Commercial Cases"},
+            {"id": 56, "ar": "أوامر الأداء", "en": "Performance Orders"},
+            {"id": 57, "ar": "التعويض عن مصاريف التقاضي", "en": "Compensation for Litigation Costs"},
+            {"id": 58, "ar": "التظلم على أمر الأداء", "en": "Grievance Against Performance Order"}
+          ]
+        },
+        "commercial_contracts": {
+          "ar": "العقود التجارية",
+          "en": "Commercial Contracts",
+          "cases": [
+            {"id": 59, "ar": "إجارة", "en": "Leasing"},
+            {"id": 60, "ar": "الحوالة التجارية", "en": "Commercial Transfer"},
+            {"id": 61, "ar": "الدعاية والإعلان والتسويق", "en": "Advertising and Marketing"},
+            {"id": 62, "ar": "الكفالة التجارية", "en": "Commercial Guarantee"},
+            {"id": 63, "ar": "المقاولات", "en": "Contracting"},
+            {"id": 64, "ar": "المكاتب والمحلات التجارية", "en": "Offices and Shops"},
+            {"id": 65, "ar": "النقل", "en": "Transport"},
+            {"id": 66, "ar": "بيع وتوريد", "en": "Sales and Supply"},
+            {"id": 67, "ar": "سمسرة", "en": "Brokerage"}
+          ]
+        },
+        "intellectual_property": {
+          "ar": "الملكية الفكرية",
+          "en": "Intellectual Property",
+          "cases": [
+            {"id": 68, "ar": "حماية حقوق المؤلف", "en": "Copyright Protection"},
+            {"id": 69, "ar": "براءات الاختراع", "en": "Patents"},
+            {"id": 70, "ar": "العلامات التجارية", "en": "Trademarks"}
+          ]
+        },
+        "summary_proceedings": {
+          "ar": "الدعاوى المستعجلة",
+          "en": "Summary Proceedings",
+          "cases": [
+            {"id": 71, "ar": "حجز تحفظي", "en": "Precautionary Attachment"},
+            {"id": 72, "ar": "حراسة قضائية", "en": "Judicial Receivership"},
+            {"id": 73, "ar": "منع من السفر", "en": "Travel Ban"},
+            {"id": 74, "ar": "وقف الأعمال الجديدة", "en": "Cessation of New Works"},
+            {"id": 75, "ar": "معاينة لإثبات الحالة", "en": "Inspection to Prove Condition"},
+            {"id": 76, "ar": "وقف تنفيذ", "en": "Stay of Execution"},
+            {"id": 77, "ar": "الحصول على عينة من منتج", "en": "Obtaining Product Sample"},
+            {"id": 78, "ar": "التحفظ على مستندات معينة", "en": "Withholding Specific Documents"},
+            {"id": 79, "ar": "المنع من التصرف", "en": "Restraint from Disposal"},
+            {"id": 80, "ar": "الإذن في التصرف", "en": "Authorization for Disposal"},
+            {"id": 81, "ar": "طلبات عاجلة أخرى", "en": "Other Urgent Requests"},
+            {"id": 82, "ar": "إثبات شهادة", "en": "Proving Testimony"}
+          ]
+        }
+      }
+    },
+    "enforcement": {
+      "ar": "تنفيذ",
+      "en": "Enforcement",
+      "sub_categories": {
+        "refusal_to_accept": {
+          "ar": "الامتناع عن قبول السند",
+          "en": "Refusal to Accept Document",
+          "cases": [
+            {"id": 83, "ar": "الإمتناع عن قبول السند", "en": "Refusal to Accept Document"}
+          ]
+        },
+        "insolvency": {
+          "ar": "دعوى الإعسار أو الملاءة",
+          "en": "Insolvency or Solvency Suit",
+          "cases": [
+            {"id": 84, "ar": "دعوى الإعسار", "en": "Insolvency Suit"},
+            {"id": 85, "ar": "دعوى الملاءة", "en": "Solvency Suit"}
+          ]
+        },
+        "formal_disputes": {
+          "ar": "منازعات شكلية",
+          "en": "Formal Disputes",
+          "cases": [
+            {"id": 86, "ar": "عدم توفر شرط شكلي للسند أو تزويره أو إنكار التوقيع", "en": "Lack of Formal Requirement, Forgery, or Denial of Signature"},
+            {"id": 87, "ar": "عدم الصفة", "en": "Lack of Standing"}
+          ]
+        },
+        "substantive_disputes": {
+          "ar": "منازعات غير شكلية",
+          "en": "Substantive Disputes",
+          "cases": [
+            {"id": 88, "ar": "الإبراء بعد صدور السند التنفيذي", "en": "Acquittal After Issuance of Enforcement Document"},
+            {"id": 89, "ar": "التأجيل بعد صدور السند التنفيذي", "en": "Deferment After Issuance of Enforcement Document"},
+            {"id": 90, "ar": "الحوالة بعد صدور السند التنفيذي", "en": "Transfer After Issuance of Enforcement Document"},
+            {"id": 91, "ar": "الصلح بعد صدور السند التنفيذي", "en": "Settlement After Issuance of Enforcement Document"},
+            {"id": 92, "ar": "المال المحجوز يفوق مقدار الدين المطالب به", "en": "Attached Property Exceeds Debt Amount"},
+            {"id": 93, "ar": "المقاصة بموجب سند تنفيذي", "en": "Set-off Based on Enforcement Document"},
+            {"id": 94, "ar": "الوفاء بعد صدور السند التنفيذي", "en": "Payment After Issuance of Enforcement Document"},
+            {"id": 95, "ar": "امتناع شاغل العقار عن الإخلاء لحمله سند تنفيذي", "en": "Occupant Refusal to Vacate Despite Enforcement Document"},
+            {"id": 96, "ar": "تواطؤ أثناء المزاد أو التأثير على سعر المزاد", "en": "Collusion or Influence During Auction Price"},
+            {"id": 97, "ar": "رد ما استوفي خطأ", "en": "Refund of Wrongfully Collected Funds"},
+            {"id": 98, "ar": "صحة تقرير المحجوز لديه بما في ذمته", "en": "Validity of Garnishee's Statement of Assets"},
+            {"id": 99, "ar": "عيب في العين المباعة", "en": "Defect in Sold Item"},
+            {"id": 100, "ar": "دعوى التعويض", "en": "Compensation Suit"},
+            {"id": 101, "ar": "المنازعة في أجرة الحارس القضائي أو محاسبته أو استبداله", "en": "Dispute Over Judicial Guardian's Fees, Accounting, or Replacement"},
+            {"id": 102, "ar": "المحاصة", "en": "Prorated Distribution (Muhasasah)"},
+            {"id": 103, "ar": "أتعاب المحاماة أو الوكلاء", "en": "Lawyer/Representative Fees"},
+            {"id": 104, "ar": "التعويض عن أضرار التقاضي", "en": "Compensation for Litigation Damages"}
+          ]
+        }
+      }
+    },
+    "criminal": {
+      "ar": "جزائية",
+      "en": "Criminal",
+      "sub_categories": {
+        "private_right": {
+          "ar": "الحق الخاص",
+          "en": "Private Right",
+          "cases": [
+            {"id": 105, "ar": "المطالبة بالحق الخاص", "en": "Claim for Private Right"}
+          ]
+        },
+        "judicial_requests": {
+          "ar": "الطلبات القضائية",
+          "en": "Judicial Requests",
+          "cases": [
+            {"id": 106, "ar": "منع من السفر", "en": "Travel Ban"},
+            {"id": 107, "ar": "إثبات تنازل", "en": "Proving Waiver"},
+            {"id": 108, "ar": "تسليم مضبوطات", "en": "Return of Seized Items"},
+            {"id": 109, "ar": "المعاينة لإثبات الحالة", "en": "Inspection to Prove Condition"},
+            {"id": 110, "ar": "إثبات شهادة", "en": "Proving Testimony"},
+            {"id": 111, "ar": "التظلم من أمر توقيف", "en": "Grievance Against Arrest Order"}
+          ]
+        },
+        "limits": {
+          "ar": "حدود",
+          "en": "Hudud (Limits)",
+          "cases": [
+            {"id": 112, "ar": "قذف", "en": "Slander/Defamation (Qadhf)"}
+          ]
+        },
+        "retribution": {
+          "ar": "قصاص",
+          "en": "Qisas (Retribution)",
+          "cases": [
+            {"id": 113, "ar": "ما دون النفس", "en": "Injury Short of Death"},
+            {"id": 114, "ar": "نفس", "en": "Capital Offense (Death)"}
+          ]
+        },
+        "financial_claims": {
+          "ar": "مطالبة مالية",
+          "en": "Financial Claim",
+          "cases": [
+            {"id": 115, "ar": "أتعاب محاماة أو وكلاء", "en": "Lawyer/Representative Fees"},
+            {"id": 116, "ar": "أرش", "en": "Injury Compensation (Arsh)"},
+            {"id": 117, "ar": "التعويض عن السجن", "en": "Compensation for Imprisonment"},
+            {"id": 118, "ar": "الدية", "en": "Blood Money (Diya)"},
+            {"id": 119, "ar": "رد العين", "en": "Return of the Item"},
+            {"id": 120, "ar": "التعويض عن أضرار التقاضي", "en": "Compensation for Litigation Damages"}
+          ]
+        }
+      }
+    },
+    "general": {
+      "ar": "عامة",
+      "en": "General",
+      "sub_categories": {
+        "other": {
+          "ar": "أخرى",
+          "en": "Other",
+          "cases": [
+            {"id": 121, "ar": "إثبات عقد", "en": "Proving a Contract"},
+            {"id": 122, "ar": "المسئولية الناشئة عن الفعل الضار", "en": "Liability Arising from Harmful Acts"},
+            {"id": 123, "ar": "رد العين", "en": "Return of the Item"},
+            {"id": 124, "ar": "عقد استصناع", "en": "Manufacturing Contract (Istisna)"},
+            {"id": 125, "ar": "فسخ عقد أو بطلانه", "en": "Annulment or Invalidation of Contract"},
+            {"id": 126, "ar": "قسمة منافع مهايأة", "en": "Division of Benefits (Muhayata)"},
+            {"id": 127, "ar": "مطالبة بمستندات", "en": "Claim for Documents"}
+          ]
+        },
+        "summary_proceedings": {
+          "ar": "الدعاوى المستعجلة",
+          "en": "Summary Proceedings",
+          "cases": [
+            {"id": 128, "ar": "منع من السفر", "en": "Travel Ban"},
+            {"id": 129, "ar": "وقف الأعمال الجديدة", "en": "Cessation of New Works"},
+            {"id": 130, "ar": "أجرة الأجير اليومية أو الأسبوعية", "en": "Daily or Weekly Worker Wages"},
+            {"id": 131, "ar": "استرداد حيازة عقار", "en": "Recovery of Real Estate Possession"},
+            {"id": 132, "ar": "المعاينة لإثبات الحالة", "en": "Inspection to Prove Condition"},
+            {"id": 133, "ar": "منع التعرض للحيازة", "en": "Prevention of Interference with Possession"},
+            {"id": 134, "ar": "حجز تحفظي", "en": "Precautionary Attachment"},
+            {"id": 135, "ar": "إثبات شهادة", "en": "Proving Testimony"}
+          ]
+        },
+        "real_estate": {
+          "ar": "عقارية",
+          "en": "Real Estate",
+          "cases": [
+            {"id": 136, "ar": "إخلاء عقار", "en": "Eviction"},
+            {"id": 137, "ar": "استطراق", "en": "Right of Way"},
+            {"id": 138, "ar": "تداخل عقارات", "en": "Real Estate Overlap"},
+            {"id": 139, "ar": "حق الشفعة", "en": "Right of Pre-emption"},
+            {"id": 140, "ar": "ملكية عقار", "en": "Real Estate Ownership"},
+            {"id": 141, "ar": "قسمة عقارات مشتركة", "en": "Division of Shared Property"},
+            {"id": 142, "ar": "مساهمة عقارية", "en": "Real Estate Investment/Contribution"},
+            {"id": 143, "ar": "مساييل أو حمى", "en": "Watercourses or Protected Land"},
+            {"id": 144, "ar": "مقاولات إنشاء مباني", "en": "Building Construction Contracting"}
+          ]
+        },
+        "financial": {
+          "ar": "مالية",
+          "en": "Financial",
+          "cases": [
+            {"id": 145, "ar": "إثبات رهن أو بيع المرهون", "en": "Proving a Pledge or Selling Pledged Item"},
+            {"id": 146, "ar": "رد مسروق", "en": "Return of Stolen Property"},
+            {"id": 147, "ar": "عارية", "en": "Gratuitous Loan (Ariya)"},
+            {"id": 148, "ar": "قرض أو سلف", "en": "Loan or Advance"},
+            {"id": 149, "ar": "هبة في غير عقار", "en": "Gift (Non-Real Estate)"},
+            {"id": 150, "ar": "أتعاب محامين أو وكلاء", "en": "Lawyer/Representative Fees"},
+            {"id": 151, "ar": "أجرة أعمال", "en": "Work Fees"},
+            {"id": 152, "ar": "أجرة عقار", "en": "Real Estate Rent"},
+            {"id": 153, "ar": "أجرة عين منقول", "en": "Movable Property Rent"},
+            {"id": 154, "ar": "التعويض عن أضرار التقاضي", "en": "Compensation for Litigation Damages"},
+            {"id": 155, "ar": "ثمن مبيع", "en": "Sale Price"},
+            {"id": 156, "ar": "حوالة الدين من ذمة شخص لآخر", "en": "Debt Assignment/Transfer"},
+            {"id": 157, "ar": "شراكة في أملاك غير عقارية", "en": "Partnership in Non-Real Estate Property"},
+            {"id": 158, "ar": "ضمان (كفالة)", "en": "Guarantee (Suretyship)"},
+            {"id": 159, "ar": "محاسبة وكيل", "en": "Accounting of an Agent"},
+            {"id": 160, "ar": "مطالبة الضامن للمضمون عنه (كفيل لمكفوله)", "en": "Guarantor Claim Against Guaranteed Party"},
+            {"id": 161, "ar": "أرش إصابة أو دية في غير حادث مروري", "en": "Injury/Death Compensation (Non-Traffic)"},
+            {"id": 162, "ar": "وديعة", "en": "Deposit (Wadi'a)"}
+          ]
+        },
+        "traffic": {
+          "ar": "مروري",
+          "en": "Traffic",
+          "cases": [
+            {"id": 163, "ar": "حق خاص ناشئ عن حادث مروري", "en": "Private Right Arising from Traffic Accident"}
+          ]
+        },
+        "arbitration_appeals": {
+          "ar": "الاستئناف",
+          "en": "Appeals",
+          "cases": [
+            {"id": 164, "ar": "التحكيم (عامة)", "en": "Arbitration (General)"}
+          ]
+        }
+      }
+    },
+    "labor": {
+      "ar": "عمالية",
+      "en": "Labor",
+      "sub_categories": {
+        "standard_labor": {
+          "ar": "العمالة العادية",
+          "en": "Standard Labor",
+          "cases": [
+            {"id": 165, "ar": "مطالبات العامل", "en": "Employee Claims"},
+            {"id": 166, "ar": "مطالبات صاحب العمل", "en": "Employer Claims"}
+          ]
+        },
+        "domestic_labor": {
+          "ar": "العمالة المنزلية",
+          "en": "Domestic Labor",
+          "cases": [
+            {"id": 167, "ar": "اعتراض على قرارات لجان الخدمة المنزلية", "en": "Objection to Domestic Service Committee Decisions"},
+            {"id": 168, "ar": "مطالبات العامل المنزلي", "en": "Domestic Worker Claims"},
+            {"id": 169, "ar": "مطالبات صاحب العمل المنزلي", "en": "Domestic Employer Claims"}
+          ]
+        },
+        "legal_fees": {
+          "ar": "أتعاب محاماة وأضرار التقاضي",
+          "en": "Legal Fees and Litigation Damages",
+          "cases": [
+            {"id": 170, "ar": "أتعاب محاماة أو وكلاء", "en": "Lawyer/Representative Fees"},
+            {"id": 171, "ar": "التعويض عن أضرار التقاضي", "en": "Compensation for Litigation Damages"}
+          ]
+        },
+        "summary_proceedings": {
+          "ar": "الدعاوى المستعجلة",
+          "en": "Summary Proceedings",
+          "cases": [
+            {"id": 172, "ar": "منع من السفر", "en": "Travel Ban"},
+            {"id": 173, "ar": "أجرة الأجير اليومية أو الأسبوعية", "en": "Daily or Weekly Worker Wages"},
+            {"id": 174, "ar": "إيقاف التنفيذ", "en": "Stay of Execution"},
+            {"id": 175, "ar": "المعاينة لإثبات الحالة", "en": "Inspection to Prove Condition"},
+            {"id": 176, "ar": "حجز تحفظي", "en": "Precautionary Attachment"},
+            {"id": 177, "ar": "إثبات شهادة", "en": "Proving Testimony"}
+          ]
+        },
+        "social_insurance": {
+          "ar": "تأمينات اجتماعية",
+          "en": "Social Insurance",
+          "cases": [
+            {"id": 178, "ar": "إلغاء القرار الصادر عن التأمينات الاجتماعية", "en": "Cancellation of Social Insurance Decision"}
+          ]
+        },
+        "penalties": {
+          "ar": "إيقاع العقوبات النظامية",
+          "en": "Imposition of Statutory Penalties",
+          "cases": [
+            {"id": 179, "ar": "إيقاع العقوبات النظامية من مكتب العمل", "en": "Imposition of Statutory Penalties by Labor Office"}
+          ]
+        },
+        "arbitration_appeals": {
+          "ar": "الاستئناف",
+          "en": "Appeals",
+          "cases": [
+            {"id": 180, "ar": "التحكيم (عمالي)", "en": "Arbitration (Labor)"}
+          ]
+        }
+      }
+    },
+    "terminations_and_declarations": {
+      "ar": "إنهاءات",
+      "en": "Terminations and Declarations",
+      "sub_categories": {
+        "heirs": {
+          "ar": "الورثة",
+          "en": "Heirs",
+          "cases": [
+            {"id": 181, "ar": "قسمة تركة بالتراضي مع وجود قاصر أو غائب أو مفقود أو وقف أو وصية", "en": "Consensual Estate Division (with minor/missing/waqf)"},
+            {"id": 182, "ar": "بيان أنصباء الورثة مع وجود قاصر أو غائب أو مفقود أو وقف أو وصية", "en": "Declaration of Heir Shares (with minor/missing/waqf)"},
+            {"id": 183, "ar": "إثبات وفاة أو حصر ورثة متوفى بحالات خاصة", "en": "Proving Death or Limiting Heirs in Special Cases"}
+          ]
+        },
+        "guardianships": {
+          "ar": "الولايات",
+          "en": "Guardianships",
+          "cases": [
+            {"id": 184, "ar": "إقامة ولاية على قاصر سنا", "en": "Appointing Guardianship Over a Minor"},
+            {"id": 185, "ar": "إقامة ولاية على قاصر عقلاً", "en": "Appointing Guardianship Over Mentally Incapacitated"},
+            {"id": 186, "ar": "إثبات رشد من كان راشد عقلاً", "en": "Proving Maturity for Mentally Mature"},
+            {"id": 187, "ar": "فسخ ولاية بطلب من الولي", "en": "Termination of Guardianship at Guardian's Request"},
+            {"id": 188, "ar": "تقدير نفقة قاصر", "en": "Estimating Minor's Alimony"},
+            {"id": 189, "ar": "فسخ الولاية لموت الولي", "en": "Termination of Guardianship Due to Guardian's Death"},
+            {"id": 190, "ar": "إقامة ولاية على مال مفقود", "en": "Appointing Guardianship Over Missing Person's Property"},
+            {"id": 191, "ar": "فسخ ولاية على مفقود", "en": "Termination of Guardianship Over Missing Person"},
+            {"id": 192, "ar": "ولاية ورعاية وحضانة يتيم أو ذوي احتياجات خاصة", "en": "Guardianship, Care, and Custody of Orphan/Special Needs"}
+          ]
+        },
+        "social_declarations": {
+          "ar": "إثباتات اجتماعية",
+          "en": "Social Declarations",
+          "cases": [
+            {"id": 193, "ar": "تنازل عن أرش إصابة أو دية غير العمد أو شبه العمد", "en": "Waiver of Injury/Death Compensation (Unintentional/Semi-Intentional)"},
+            {"id": 194, "ar": "الموافقة على الزواج المبكر", "en": "Approval of Early Marriage"},
+            {"id": 195, "ar": "إثبات انقطاع الأولياء عن المرأة لغرض الزواج", "en": "Proving Absence of Male Guardians for Marriage Purposes"},
+            {"id": 196, "ar": "عقد زواج بولاية القاضي", "en": "Marriage Contract Under Judicial Guardianship"},
+            {"id": 197, "ar": "إثبات أقرب ولي للتزويج", "en": "Proving the Nearest Guardian for Marriage"},
+            {"id": 198, "ar": "إثبات فقد أو غيبة", "en": "Proving Missing Status or Absence"},
+            {"id": 199, "ar": "إثبات تبين حال مفقود بالسلامة والحضور", "en": "Proving Safety and Reappearance of Missing Person"}
+          ]
+        },
+        "endowments_and_wills": {
+          "ar": "الأوقاف والوصايا",
+          "en": "Endowments and Wills",
+          "cases": [
+            {"id": 200, "ar": "إقامة ناظر على وقف", "en": "Appointing a Waqf Trustee"},
+            {"id": 201, "ar": "إذن تصرف وإضافة لصك الوقف أو الوصية", "en": "Authorization for Disposal/Addition to Waqf/Will Deed"},
+            {"id": 202, "ar": "تعديل وإضافة لصك الوقف أو الوصية", "en": "Amendment/Addition to Waqf/Will Deed"},
+            {"id": 203, "ar": "طلب المستثمر فسخ أو تعديل على عقد الاستثمار المأذون به من المحكمة", "en": "Investor Request to Terminate/Amend Court-Authorized Investment Contract"},
+            {"id": 204, "ar": "تسليم أموال الوقف أو الوصية المودعة لدى الهيئة", "en": "Handing Over Waqf/Will Funds Deposited with the Commission"},
+            {"id": 205, "ar": "إقامة مشرف على وقف أو وصية", "en": "Appointing a Supervisor Over Waqf or Will"},
+            {"id": 206, "ar": "استقالة ناظر على وقف أو وصية", "en": "Resignation of Waqf/Will Trustee"},
+            {"id": 207, "ar": "إثبات وقف أو وصية لمتوفى ومن ضمن الورثة غائب أو قاصر أو مفقود", "en": "Proving Waqf/Will for Deceased (with missing/minor heirs)"}
+          ]
+        },
+        "authorizations": {
+          "ar": "الأذونات",
+          "en": "Authorizations",
+          "cases": [
+            {"id": 208, "ar": "إذن التصرف بأملاك القاصر أو المفقود أو الغائب", "en": "Authorization to Dispose of Minor/Missing/Absentee Property"}
+          ]
+        },
+        "deed_amendments": {
+          "ar": "تعديلات الصكوك",
+          "en": "Deed Amendments",
+          "cases": [
+            {"id": 209, "ar": "تعديل أو تهميش على صك إنهائي", "en": "Amendment or Marginal Note on a Final Deed"}
+          ]
+        },
+        "ahsa_qatif_specific": {
+          "ar": "إنهاءات الأوقاف والمواريث في الأحساء والقطيف",
+          "en": "Endowments and Inheritance Declarations in Al-Ahsa and Qatif",
+          "cases": [
+            {"id": 210, "ar": "إثبات زواج سابق", "en": "Proving a Previous Marriage"},
+            {"id": 211, "ar": "إثبات رجعة", "en": "Proving Reconciliation (Raj'a)"},
+            {"id": 212, "ar": "إثبات طلاق", "en": "Proving Divorce"},
+            {"id": 213, "ar": "إثبات خلع", "en": "Proving Khula (Divorce initiated by wife)"},
+            {"id": 214, "ar": "إثبات حضانة", "en": "Proving Custody"},
+            {"id": 215, "ar": "إثبات زواج أحد الزوجين غير سعودي", "en": "Proving Marriage for Non-Saudi Spouse"},
+            {"id": 216, "ar": "إثبات ورثة متوفى", "en": "Proving Heirs of Deceased"},
+            {"id": 217, "ar": "الموافقة على الزواج المبكر", "en": "Approval of Early Marriage"},
+            {"id": 218, "ar": "إثبات وقف", "en": "Proving Waqf"},
+            {"id": 219, "ar": "إثبات وصية", "en": "Proving a Will"},
+            {"id": 220, "ar": "قسمة تركة بالتراضي مع وجود قاصر أو غائب أو مفقود أو وقف أو وصية", "en": "Consensual Estate Division (with minor/missing/waqf)"},
+            {"id": 221, "ar": "إنشاء عقد زواج", "en": "Creating a Marriage Contract"}
+          ]
+        }
+      }
+    }
+  }

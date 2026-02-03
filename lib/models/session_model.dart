@@ -31,23 +31,27 @@ class SessionModel {
   });
 
   factory SessionModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return SessionModel(
       id: doc.id,
-      caseId: data['caseId'] as String,
-      clientId: data['clientId'] as String,
-      lawyerId: data['lawyerId'] as String,
-      scheduledAt: (data['scheduledAt'] as Timestamp).toDate(),
-      type: SessionType.fromString(data['type'] as String),
-      location: data['location'] as String,
+      caseId: (data['caseId'] as String?) ?? '',
+      clientId: (data['clientId'] as String?) ?? '',
+      lawyerId: (data['lawyerId'] as String?) ?? '',
+      scheduledAt: data['scheduledAt'] != null && data['scheduledAt'] is Timestamp
+          ? (data['scheduledAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      type: SessionType.fromString(data['type'] as String? ?? 'consultation'),
+      location: (data['location'] as String?) ?? '',
       meetingLink: data['meetingLink'] as String?,
       remindersSent: RemindersSent.fromMap(
-          data['remindersSent'] as Map<String, dynamic>),
-      report: data['report'] != null
+          data['remindersSent'] as Map<String, dynamic>? ?? {}),
+      report: data['report'] != null && data['report'] is Map<String, dynamic>
           ? SessionReport.fromMap(data['report'] as Map<String, dynamic>)
           : null,
-      status: SessionStatus.fromString(data['status'] as String),
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      status: SessionStatus.fromString(data['status'] as String? ?? 'scheduled'),
+      createdAt: data['createdAt'] != null && data['createdAt'] is Timestamp
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
     );
   }
 
@@ -196,12 +200,12 @@ class RemindersSent {
 
   factory RemindersSent.fromMap(Map<String, dynamic> map) {
     return RemindersSent(
-      sms: map['sms'] as bool,
-      internal: map['internal'] as bool,
-      smsSentAt: map['smsSentAt'] != null
+      sms: map['sms'] as bool? ?? false,
+      internal: map['internal'] as bool? ?? false,
+      smsSentAt: map['smsSentAt'] != null && map['smsSentAt'] is Timestamp
           ? (map['smsSentAt'] as Timestamp).toDate()
           : null,
-      internalSentAt: map['internalSentAt'] != null
+      internalSentAt: map['internalSentAt'] != null && map['internalSentAt'] is Timestamp
           ? (map['internalSentAt'] as Timestamp).toDate()
           : null,
     );
@@ -236,10 +240,11 @@ class SessionReport {
       content: map['content'] as String?,
       attachments: (map['attachments'] as List<dynamic>?)
               ?.map((e) => e as String)
+              .whereType<String>()
               .toList() ??
           [],
-      submittedBy: map['submittedBy'] as String,
-      submittedAt: map['submittedAt'] != null
+      submittedBy: (map['submittedBy'] as String?) ?? '',
+      submittedAt: map['submittedAt'] != null && map['submittedAt'] is Timestamp
           ? (map['submittedAt'] as Timestamp).toDate()
           : null,
     );

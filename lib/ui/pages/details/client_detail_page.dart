@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lefni/models/client_model.dart';
 import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -186,9 +187,7 @@ class ClientDetailPage extends StatelessWidget {
                               ),
                               if (client.agencyData!.attachmentUrl.isNotEmpty)
                                 InkWell(
-                                  onTap: () {
-                                    // TODO: Open attachment
-                                  },
+                                  onTap: () => FileViewer.openFile(context, client.agencyData!.attachmentUrl),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 8),
                                     child: Row(

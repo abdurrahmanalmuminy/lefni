@@ -7,6 +7,7 @@ import 'package:lefni/services/firestore/collection_record_service.dart';
 import 'package:lefni/services/firestore/finance_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
+import 'package:lefni/utils/file_viewer.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -217,9 +218,7 @@ class CollectionRecordDetailPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 16),
                               InkWell(
-                                onTap: () {
-                                  // TODO: Open receipt
-                                },
+                                onTap: () => FileViewer.openFile(context, record.receiptUrl!),
                                 child: Row(
                                   children: [
                                     Icon(

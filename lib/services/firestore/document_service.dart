@@ -47,43 +47,47 @@ class DocumentService {
     }
   }
 
-  Stream<List<DocumentModel>> getAllDocuments() {
+  Stream<List<DocumentModel>> getAllDocuments({int limit = 20}) {
     return _firestore
         .collection(_collection)
         .orderBy('uploadedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => DocumentModel.fromFirestore(doc))
             .toList());
   }
 
-  Stream<List<DocumentModel>> getDocumentsByCategory(DocumentCategory category) {
+  Stream<List<DocumentModel>> getDocumentsByCategory(DocumentCategory category, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('category', isEqualTo: category.value)
         .orderBy('uploadedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => DocumentModel.fromFirestore(doc))
             .toList());
   }
 
-  Stream<List<DocumentModel>> getDocumentsByCase(String caseId) {
+  Stream<List<DocumentModel>> getDocumentsByCase(String caseId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('caseId', isEqualTo: caseId)
         .orderBy('uploadedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => DocumentModel.fromFirestore(doc))
             .toList());
   }
 
-  Stream<List<DocumentModel>> getDocumentsByClient(String clientId) {
+  Stream<List<DocumentModel>> getDocumentsByClient(String clientId, {int limit = 20}) {
     return _firestore
         .collection(_collection)
         .where('clientId', isEqualTo: clientId)
         .orderBy('uploadedAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => DocumentModel.fromFirestore(doc))
