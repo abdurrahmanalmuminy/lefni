@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/models/user_model.dart';
@@ -6,6 +7,8 @@ import 'package:lefni/ui/widgets/search_app_bar.dart';
 import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/list_tiles/collaborator_card.dart';
 import 'package:lefni/ui/widgets/forms/create_user_form.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:uicons/uicons.dart';
 
 class UsersListPage extends StatefulWidget {
@@ -107,14 +110,20 @@ class _UsersListPageState extends State<UsersListPage>
           return _buildRoleList(_getRoleFromTab(index));
         }),
       ),
-      floatingActionButton: ActionFloatingButton(
-        labelKey: _getLabelKeyFromTab(_tabController.index),
-        icon: UIcons.regularRounded.plus,
-        onPressed: () {
-          final role = _getRoleFromTab(_tabController.index);
-          showDialog(
-            context: context,
-            builder: (context) => CreateUserForm(role: role),
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return ActionFloatingButton(
+            labelKey: _getLabelKeyFromTab(_tabController.index),
+            icon: UIcons.regularRounded.plus,
+            enabled: canWrite,
+            onPressed: canWrite ? () {
+              final role = _getRoleFromTab(_tabController.index);
+              showDialog(
+                context: context,
+                builder: (context) => CreateUserForm(role: role),
+              );
+            } : null,
           );
         },
       ),

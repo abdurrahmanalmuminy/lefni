@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/services/firestore/contract_service.dart';
 import 'package:lefni/ui/widgets/search_app_bar.dart';
 import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/list_tiles/contract_list_tile.dart';
 import 'package:lefni/ui/widgets/forms/create_contract_form.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:uicons/uicons.dart';
 
 class ContractsListPage extends StatefulWidget {
@@ -133,13 +136,19 @@ class _ContractsListPageState extends State<ContractsListPage> {
           ),
         ],
       ),
-      floatingActionButton: ActionFloatingButton(
-        labelKey: 'createContract',
-        icon: UIcons.regularRounded.plus,
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const CreateContractForm(),
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return ActionFloatingButton(
+            labelKey: 'createContract',
+            icon: UIcons.regularRounded.plus,
+            enabled: canWrite,
+            onPressed: canWrite ? () {
+              showDialog(
+                context: context,
+                builder: (context) => const CreateContractForm(),
+              );
+            } : null,
           );
         },
       ),

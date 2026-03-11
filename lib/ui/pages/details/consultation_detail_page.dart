@@ -8,6 +8,7 @@ import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/services/court_classifications_service.dart';
 import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/utils/file_viewer.dart';
 import 'package:intl/intl.dart';
@@ -582,11 +583,16 @@ class _ConsultationDetailPageState extends State<ConsultationDetailPage> {
         },
       ),
       floatingActionButton: isAdmin
-          ? FloatingActionButton(
-              onPressed: () {
-                context.go('/consultations/edit/${widget.consultationId}');
+          ? Consumer<UserSessionProvider>(
+              builder: (context, userSession, child) {
+                final canWrite = PermissionsHelper.canWrite(userSession);
+                return FloatingActionButton(
+                  onPressed: canWrite ? () {
+                    context.go('/consultations/edit/${widget.consultationId}');
+                  } : null,
+                  child: const Icon(Icons.edit),
+                );
               },
-              child: const Icon(Icons.edit),
             )
           : null,
     );

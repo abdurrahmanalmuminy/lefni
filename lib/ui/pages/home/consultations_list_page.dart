@@ -7,6 +7,8 @@ import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/firestore/user_service.dart';
 import 'package:lefni/services/court_classifications_service.dart';
 import 'package:lefni/ui/widgets/search_app_bar.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/forms/create_consultation_form.dart';
 import 'package:lefni/providers/user_session_provider.dart';
@@ -159,17 +161,40 @@ class _ConsultationsListPageState extends State<ConsultationsListPage> {
         ],
       ),
       floatingActionButton: isClient
-          ? ActionFloatingButton(
-              labelKey: 'consultation',
-              icon: Icons.chat_bubble_outline,
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => const CreateConsultationForm(),
+          ? Consumer<UserSessionProvider>(
+              builder: (context, userSession, child) {
+                // Clients can always create consultations (they're active after onboarding)
+                // For lawyers, check write permission
+                final canWrite = isClient || PermissionsHelper.canWrite(userSession);
+                return ActionFloatingButton(
+                  labelKey: 'consultation',
+                  icon: Icons.chat_bubble_outline,
+                  enabled: canWrite,
+                  onPressed: canWrite ? () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const CreateConsultationForm(),
+                    );
+                  } : null,
                 );
               },
             )
-          : null,
+          : Consumer<UserSessionProvider>(
+              builder: (context, userSession, child) {
+                final canWrite = PermissionsHelper.canWrite(userSession);
+                return ActionFloatingButton(
+                  labelKey: 'consultation',
+                  icon: Icons.chat_bubble_outline,
+                  enabled: canWrite,
+                  onPressed: canWrite ? () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => const CreateConsultationForm(),
+                    );
+                  } : null,
+                );
+              },
+            ),
     );
   }
 }

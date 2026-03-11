@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/models/case_model.dart';
 import 'package:lefni/services/firestore/case_service.dart';
@@ -8,6 +9,8 @@ import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/services/court_classifications_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/ui/widgets/status_chip.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -390,11 +393,16 @@ class CaseDetailPage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.go('/cases/edit/$caseId');
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return FloatingActionButton(
+            onPressed: canWrite ? () {
+              context.go('/cases/edit/$caseId');
+            } : null,
+            child: const Icon(Icons.edit),
+          );
         },
-        child: const Icon(Icons.edit),
       ),
     );
   }

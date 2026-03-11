@@ -40,12 +40,16 @@ import 'package:lefni/ui/pages/reports/performance_reports_page.dart';
 class Dashboard extends StatefulWidget {
   final Function(Locale)? onLocaleChanged;
   final Locale currentLocale;
+  final Function(ThemeMode)? onThemeModeChanged;
+  final ThemeMode? currentThemeMode;
   final Widget? child;
 
   const Dashboard({
     super.key,
     this.onLocaleChanged,
     required this.currentLocale,
+    this.onThemeModeChanged,
+    this.currentThemeMode,
     this.child,
   });
 
@@ -225,6 +229,21 @@ class _DashboardState extends State<Dashboard>
 
   bool _canAccessUsers(UserRole? role) {
     return role == UserRole.admin;
+  }
+
+  Brightness _getCurrentBrightness(BuildContext context) {
+    // Use currentThemeMode if available, otherwise check context
+    if (widget.currentThemeMode != null) {
+      if (widget.currentThemeMode == ThemeMode.dark) {
+        return Brightness.dark;
+      } else if (widget.currentThemeMode == ThemeMode.light) {
+        return Brightness.light;
+      }
+      // For ThemeMode.system, check MediaQuery
+      return MediaQuery.of(context).platformBrightness;
+    }
+    // Fallback to context brightness
+    return Theme.of(context).brightness;
   }
 
   Widget _buildAccessDenied() {
@@ -434,6 +453,7 @@ class _DashboardState extends State<Dashboard>
                     Tab(text: AppLocalizations.of(context)!.reports),
                   ],
                 ),
+          bottom: _buildReviewBanner(userSession) as PreferredSizeWidget?,
           actions: [
             isMobile
                 ? IconButton(
@@ -479,6 +499,27 @@ class _DashboardState extends State<Dashboard>
                       );
                     },
                   ),
+            // Theme toggle button
+            IconButton(
+              icon: Icon(
+                _getCurrentBrightness(context) == Brightness.dark
+                    ? Icons.light_mode_outlined
+                    : Icons.dark_mode_outlined,
+                size: 20,
+              ),
+              tooltip: _getCurrentBrightness(context) == Brightness.dark
+                  ? 'Light Mode'
+                  : 'Dark Mode',
+              onPressed: () {
+                if (widget.onThemeModeChanged != null) {
+                  final currentBrightness = _getCurrentBrightness(context);
+                  final newThemeMode = currentBrightness == Brightness.dark
+                      ? ThemeMode.light
+                      : ThemeMode.dark;
+                  widget.onThemeModeChanged!(newThemeMode);
+                }
+                    },
+                  ),
             // Language toggle button
             IconButton(
               icon: Icon(UIcons.regularRounded.globe, size: 20),
@@ -512,21 +553,48 @@ class _DashboardState extends State<Dashboard>
     );
   }
 
-  Widget _buildBody() {
-    // Check if user is active - redirect to waiting page if not
-    final userSession = Provider.of<UserSessionProvider>(context, listen: false);
+  Widget _buildReviewBanner(UserSessionProvider userSession) {
     final userModel = userSession.userModel;
+    final role = userSession.userRole;
     
-    if (userModel != null && !userModel.isActive) {
-      // Redirect to waiting activation page
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          context.go('/waiting-activation');
-        }
-      });
-      // Return empty container while redirecting
-      return const SizedBox.shrink();
+    // Show banner only for inactive non-client users (lawyers awaiting review)
+    if (userModel != null && !userModel.isActive && role != UserRole.client) {
+      return PreferredSize(
+        preferredSize: const Size.fromHeight(40),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: Theme.of(context).colorScheme.errorContainer,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.info_outline,
+                size: 16,
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'حسابك قيد المراجعة - يمكنك فقط عرض البيانات',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
+    return const PreferredSize(
+      preferredSize: Size.fromHeight(0),
+      child: SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildBody() {
+    // Allow inactive users to access dashboard (they'll have read-only access)
+    final userSession = Provider.of<UserSessionProvider>(context, listen: false);
     
     // If child is provided from ShellRoute, use it with access control
     if (widget.child != null) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/services/firestore/session_service.dart';
 import 'package:lefni/models/session_model.dart';
@@ -6,6 +7,8 @@ import 'package:lefni/ui/widgets/search_app_bar.dart';
 import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/list_tiles/session_list_tile.dart';
 import 'package:lefni/ui/widgets/forms/create_appointment_form.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:uicons/uicons.dart';
 
 class AppointmentsListPage extends StatelessWidget {
@@ -55,13 +58,19 @@ class AppointmentsListPage extends StatelessWidget {
                 );
               },
             ),
-      floatingActionButton: ActionFloatingButton(
-        labelKey: 'newAppointment',
-        icon: UIcons.regularRounded.plus,
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const CreateAppointmentForm(),
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return ActionFloatingButton(
+            labelKey: 'newAppointment',
+            icon: UIcons.regularRounded.plus,
+            enabled: canWrite,
+            onPressed: canWrite ? () {
+              showDialog(
+                context: context,
+                builder: (context) => const CreateAppointmentForm(),
+              );
+            } : null,
           );
         },
       ),

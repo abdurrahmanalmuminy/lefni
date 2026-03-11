@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lefni/models/lefbi_onboarding.dart';
+import 'package:lefni/models/user_model.dart';
+import 'package:lefni/services/onboarding_service.dart';
 import 'package:lefni/ui/dashboard.dart';
+import 'package:lefni/ui/pages/auth/landing_page.dart';
 import 'package:lefni/ui/pages/auth/login_page.dart';
+import 'package:lefni/ui/pages/auth/onboarding_page.dart';
 import 'package:lefni/ui/pages/auth/user_profile_page.dart';
 import 'package:lefni/ui/pages/auth/waiting_activation_page.dart';
 import 'package:lefni/providers/user_session_provider.dart';
@@ -64,6 +69,8 @@ import 'package:lefni/ui/pages/users/client_profile_page.dart';
 class AppRouter {
   static Locale _currentLocale = const Locale('ar');
   static Function(Locale)? _onLocaleChanged;
+  static ThemeMode _currentThemeMode = ThemeMode.system;
+  static Function(ThemeMode)? _onThemeModeChanged;
 
   static void setLocaleCallback(Function(Locale) callback) {
     _onLocaleChanged = callback;
@@ -76,12 +83,33 @@ class AppRouter {
 
   static Locale get currentLocale => _currentLocale;
 
+  static void setThemeModeCallback(Function(ThemeMode) callback) {
+    _onThemeModeChanged = callback;
+  }
+
+  static void updateThemeMode(ThemeMode themeMode) {
+    _currentThemeMode = themeMode;
+    _onThemeModeChanged?.call(themeMode);
+  }
+
+  static ThemeMode get currentThemeMode => _currentThemeMode;
+
   // Helper function to build all routes
   static List<RouteBase> _buildRoutes() {
     return [
       GoRoute(
+        path: '/landing',
+        builder: (context, state) => const LandingPage(),
+      ),
+      GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => OnboardingPage(
+          selectedRoleId: state.uri.queryParameters['role'],
+        ),
       ),
       GoRoute(
         path: '/waiting-activation',
@@ -95,6 +123,10 @@ class AppRouter {
               updateLocale(locale);
             },
             currentLocale: _currentLocale,
+            onThemeModeChanged: (themeMode) {
+              updateThemeMode(themeMode);
+            },
+            currentThemeMode: _currentThemeMode,
             child: child,
           );
         },
@@ -402,21 +434,64 @@ class AppRouter {
   // Create router with refreshListenable to listen to auth state changes
   static GoRouter createRouter(UserSessionProvider userSessionProvider) {
     return GoRouter(
-      initialLocation: '/',
+      initialLocation: '/landing',
       refreshListenable: userSessionProvider,
-      redirect: (context, state) {
+      redirect: (context, state) async {
+        final onboardingId =
+            lefniOnboarding['onboarding_id'] as String? ?? 'lefni_v1';
         final user = FirebaseAuth.instance.currentUser;
         final isLoggedIn = user != null;
-        final isGoingToLogin = state.uri.path == '/login';
+        final currentPath = state.uri.path;
+        final isGoingToLanding = currentPath == '/landing';
+        final isGoingToLogin = currentPath == '/login';
+        final isGoingToOnboarding = currentPath == '/onboarding';
+        final isGoingToWaiting = currentPath == '/waiting-activation';
+        final isClient = userSessionProvider.userRole == UserRole.client;
 
-        // If not logged in and not going to login, redirect to login
-        if (!isLoggedIn && !isGoingToLogin) {
-          return '/login';
+        // If logged in as client, enforce onboarding before entering the app.
+        // We only do this after userModel is loaded to avoid redirect flicker.
+        Future<bool> clientNeedsOnboarding() async {
+          if (!isLoggedIn || !isClient) return false;
+          if (userSessionProvider.isLoading || userSessionProvider.userModel == null) {
+            return false;
+          }
+          final completed = await OnboardingService.isCompleted(
+            onboardingId: onboardingId,
+            roleId: 'client',
+            uid: user.uid,
+          );
+          return !completed;
         }
 
-        // If logged in and going to login, redirect to home
-        if (isLoggedIn && isGoingToLogin) {
-          return '/';
+        // Allow access to landing, login, onboarding, and waiting-activation pages
+        if (isGoingToLanding || isGoingToLogin || isGoingToOnboarding || isGoingToWaiting) {
+          // If logged in and going to landing or login, redirect to onboarding/home
+          if (isLoggedIn && (isGoingToLanding || isGoingToLogin)) {
+            if (await clientNeedsOnboarding()) {
+              return '/onboarding?role=client';
+            }
+            return '/';
+          }
+          // If client already completed onboarding, don't allow going back to onboarding
+          if (isLoggedIn && isGoingToOnboarding && isClient) {
+            final completed = await OnboardingService.isCompleted(
+              onboardingId: onboardingId,
+              roleId: 'client',
+              uid: user.uid,
+            );
+            if (completed) return '/';
+          }
+          return null; // Allow access to these pages
+        }
+
+        // If not logged in and not going to auth pages, redirect to landing
+        if (!isLoggedIn) {
+          return '/landing';
+        }
+
+        // Logged-in client: if onboarding not completed, force onboarding
+        if (await clientNeedsOnboarding()) {
+          return '/onboarding?role=client';
         }
 
         return null; // No redirect needed
@@ -432,16 +507,24 @@ class AppRouter {
     redirect: (context, state) {
       final user = FirebaseAuth.instance.currentUser;
       final isLoggedIn = user != null;
-      final isGoingToLogin = state.uri.path == '/login';
+      final currentPath = state.uri.path;
+      final isGoingToLanding = currentPath == '/landing';
+      final isGoingToLogin = currentPath == '/login';
+      final isGoingToOnboarding = currentPath == '/onboarding';
+      final isGoingToWaiting = currentPath == '/waiting-activation';
 
-      // If not logged in and not going to login, redirect to login
-      if (!isLoggedIn && !isGoingToLogin) {
-        return '/login';
+      // Allow access to landing, login, onboarding, and waiting-activation pages
+      if (isGoingToLanding || isGoingToLogin || isGoingToOnboarding || isGoingToWaiting) {
+        // If logged in and going to landing or login, redirect to home
+        if (isLoggedIn && (isGoingToLanding || isGoingToLogin)) {
+          return '/';
+        }
+        return null; // Allow access to these pages
       }
 
-      // If logged in and going to login, redirect to home
-      if (isLoggedIn && isGoingToLogin) {
-        return '/';
+      // If not logged in and not going to auth pages, redirect to landing
+      if (!isLoggedIn) {
+        return '/landing';
       }
 
       return null; // No redirect needed

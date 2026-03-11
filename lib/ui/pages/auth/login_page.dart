@@ -39,7 +39,8 @@ class _LoginPageState extends State<LoginPage> {
   bool _isCodeSent = false; // Whether OTP code has been sent
   bool _isPhoneVerified = false; // Whether phone OTP has been verified (for signup)
   int _signUpStep = 1; // 1 = account info, 2 = profile info
-  UserRole _selectedRole = UserRole.client;
+  UserRole _selectedRole = UserRole.lawyer;
+  UserRole? _initialRoleFromUrl; // Store role from URL to preserve it
   bool _isTraining = false;
   CooperationType? _cooperationType;
   LicenseType? _selectedLicenseType;
@@ -55,6 +56,22 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _loadGeographicData();
+    // Check for role parameter from landing page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uri = GoRouterState.of(context).uri;
+      final roleParam = uri.queryParameters['role'];
+      if (roleParam == 'client') {
+        setState(() {
+          _selectedRole = UserRole.client;
+          _initialRoleFromUrl = UserRole.client;
+        });
+      } else if (roleParam == 'lawyer') {
+        setState(() {
+          _selectedRole = UserRole.lawyer;
+          _initialRoleFromUrl = UserRole.lawyer;
+        });
+      }
+    });
   }
 
   Future<void> _loadGeographicData() async {
@@ -246,9 +263,11 @@ class _LoginPageState extends State<LoginPage> {
         region: _selectedRegion!,
         city: _selectedCity!,
       );
-      // Navigate to dashboard after successful signup
+      // Navigate based on role: clients go to onboarding, others to waiting activation
       if (mounted) {
-        context.go('/');
+        // For phone signup, we need to check the role from the selected role
+        // Since phone signup always creates a client, redirect to onboarding
+        context.go('/onboarding?role=client');
       }
     } catch (e) {
       if (mounted) {
@@ -481,8 +500,12 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.green,
           ),
         );
-        // Navigate to dashboard after successful signup
-        context.go('/');
+        // Navigate based on role: clients go to onboarding, others to waiting activation
+        if (_selectedRole == UserRole.client) {
+          context.go('/onboarding?role=client');
+        } else {
+          context.go('/waiting-activation');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -795,9 +818,24 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 16),
                         
-                        // Role selection
+                        // Role selection (only show if not client from landing page)
+                        if (_selectedRole == UserRole.client)
+                          // Show read-only role display for clients
+                          TextFormField(
+                            initialValue: _getRoleLabel(UserRole.client, localizations),
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: localizations.role,
+                              prefixIcon: const Icon(Icons.person_outline),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          )
+                        else
+                          // Show role dropdown for lawyers/professionals (without client option)
                         DropdownButtonFormField<UserRole>(
-                          initialValue: _selectedRole,
+                            value: _selectedRole,
                           decoration: InputDecoration(
                             labelText: localizations.role,
                             prefixIcon: const Icon(Icons.person_outline),
@@ -805,7 +843,9 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          items: UserRole.values.map((role) {
+                            items: UserRole.values
+                                .where((role) => role != UserRole.client)
+                                .map((role) {
                             return DropdownMenuItem<UserRole>(
                               value: role,
                               child: Text(_getRoleLabel(role, localizations)),
@@ -1288,7 +1328,8 @@ class _LoginPageState extends State<LoginPage> {
                                   _firmNameController.clear();
                                   _universityController.clear();
                                   _bankAccountController.clear();
-                                  _selectedRole = UserRole.client;
+                                  // Preserve role from URL if it was set, otherwise default to lawyer
+                                  _selectedRole = _initialRoleFromUrl ?? UserRole.lawyer;
                                   _isTraining = false;
                                   _cooperationType = null;
                                   _selectedRegion = null;

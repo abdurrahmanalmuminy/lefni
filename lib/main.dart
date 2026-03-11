@@ -31,6 +31,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('ar'); // Default to Arabic
+  ThemeMode _themeMode = ThemeMode.system; // Default to system theme
   late final UserSessionProvider _userSessionProvider;
   late final GoRouter _router;
 
@@ -47,6 +48,12 @@ class _MyAppState extends State<MyApp> {
         _locale = locale;
       });
     });
+    // Set up theme mode callback for router
+    AppRouter.setThemeModeCallback((themeMode) {
+      setState(() {
+        _themeMode = themeMode;
+      });
+    });
   }
 
   @override
@@ -54,11 +61,11 @@ class _MyAppState extends State<MyApp> {
     return ChangeNotifierProvider.value(
       value: _userSessionProvider,
       child: MaterialApp.router(
-        title: 'Control Panel',
+        title: 'خبراء القانون للمحاماة والاستشارات القانونية',
         // Theme configuration
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
+        themeMode: _themeMode,
         debugShowCheckedModeBanner: false,
         
         // Router configuration

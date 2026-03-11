@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/l10n/app_localizations.dart';
 import 'package:lefni/services/firestore/case_service.dart';
 import 'package:lefni/models/case_model.dart';
@@ -6,6 +7,8 @@ import 'package:lefni/ui/widgets/search_app_bar.dart';
 import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/list_tiles/case_list_tile.dart';
 import 'package:lefni/ui/widgets/forms/create_case_form.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:uicons/uicons.dart';
 
 class CasesListPage extends StatefulWidget {
@@ -132,13 +135,19 @@ class _CasesListPageState extends State<CasesListPage> {
           ),
         ],
       ),
-      floatingActionButton: ActionFloatingButton(
-        labelKey: 'addCase',
-        icon: UIcons.regularRounded.plus,
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const CreateCaseForm(),
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return ActionFloatingButton(
+            labelKey: 'addCase',
+            icon: UIcons.regularRounded.plus,
+            enabled: canWrite,
+            onPressed: canWrite ? () {
+              showDialog(
+                context: context,
+                builder: (context) => const CreateCaseForm(),
+              );
+            } : null,
           );
         },
       ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:lefni/models/client_model.dart';
 import 'package:lefni/services/firestore/client_service.dart';
 import 'package:lefni/ui/widgets/entity_header.dart';
 import 'package:lefni/utils/file_viewer.dart';
+import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
 import 'package:uicons/uicons.dart';
 import 'package:intl/intl.dart';
 
@@ -249,11 +252,16 @@ class ClientDetailPage extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.go('/clients/edit/$clientId');
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return FloatingActionButton(
+            onPressed: canWrite ? () {
+              context.go('/clients/edit/$clientId');
+            } : null,
+            child: const Icon(Icons.edit),
+          );
         },
-        child: const Icon(Icons.edit),
       ),
     );
   }

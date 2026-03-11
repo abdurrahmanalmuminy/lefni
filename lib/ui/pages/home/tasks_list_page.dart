@@ -8,6 +8,8 @@ import 'package:lefni/ui/widgets/action_floating_button.dart';
 import 'package:lefni/ui/widgets/list_tiles/task_list_tile.dart';
 import 'package:lefni/ui/widgets/forms/create_task_form.dart';
 import 'package:lefni/providers/user_session_provider.dart';
+import 'package:lefni/utils/permissions_helper.dart';
+import 'package:lefni/providers/user_session_provider.dart';
 import 'package:uicons/uicons.dart';
 
 class TasksListPage extends StatefulWidget {
@@ -143,13 +145,19 @@ class _TasksListPageState extends State<TasksListPage> {
           ),
         ],
       ),
-      floatingActionButton: ActionFloatingButton(
-        labelKey: 'assignTask',
-        icon: UIcons.regularRounded.plus,
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (context) => const CreateTaskForm(),
+      floatingActionButton: Consumer<UserSessionProvider>(
+        builder: (context, userSession, child) {
+          final canWrite = PermissionsHelper.canWrite(userSession);
+          return ActionFloatingButton(
+            labelKey: 'assignTask',
+            icon: UIcons.regularRounded.plus,
+            enabled: canWrite,
+            onPressed: canWrite ? () {
+              showDialog(
+                context: context,
+                builder: (context) => const CreateTaskForm(),
+              );
+            } : null,
           );
         },
       ),

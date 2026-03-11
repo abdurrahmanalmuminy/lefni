@@ -4,8 +4,9 @@ import 'package:lefni/l10n/app_localizations.dart';
 class ActionFloatingButton extends StatelessWidget {
   final String labelKey;
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String? tooltip;
+  final bool enabled;
 
   const ActionFloatingButton({
     super.key,
@@ -13,6 +14,7 @@ class ActionFloatingButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.tooltip,
+    this.enabled = true,
   });
 
   @override
@@ -22,14 +24,14 @@ class ActionFloatingButton extends StatelessWidget {
 
     if (isMobile) {
       return FloatingActionButton(
-        onPressed: onPressed,
+        onPressed: enabled ? onPressed : null,
         tooltip: tooltip ?? _getLabel(context),
         child: Icon(icon),
       );
     }
 
     return FloatingActionButton.extended(
-      onPressed: onPressed,
+      onPressed: enabled ? onPressed : null,
       icon: Icon(icon),
       label: Text(_getLabel(context)),
       tooltip: tooltip,
